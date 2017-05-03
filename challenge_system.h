@@ -1,0 +1,52 @@
+#ifndef CHALLENGE_SYSTEM_H_
+#define CHALLENGE_SYSTEM_H_
+
+#include "visitor_room.h"
+
+typedef struct SChallengeRoomSystem
+{
+
+	char *name;
+	Challenge* challenges;
+	int numberOfChallenges;
+	ChallengeRoom* challengeRooms;
+	int numberOfChallengeRooms;
+	int lastTime;
+	struct VisitorNodeStr* visitor_head;
+//#include "challenge_room_system_fields.h"
+
+} ChallengeRoomSystem;
+
+//Done
+Result create_system(char *init_file, ChallengeRoomSystem **sys);
+
+
+Result destroy_system(ChallengeRoomSystem *sys, int destroy_time,
+                      char **most_popular_challenge_p, char **challenge_best_time);
+
+//Done
+Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, char *visitor_name, int visitor_id, Level level, int start_time);
+
+//Done
+Result visitor_quit(ChallengeRoomSystem *sys, int visitor_id, int quit_time);
+
+//Done
+Result all_visitors_quit(ChallengeRoomSystem *sys, int quit_time);
+
+//Done
+Result system_room_of_visitor(ChallengeRoomSystem *sys, char *visitor_name, char **room_name);
+
+//Done
+Result change_challenge_name(ChallengeRoomSystem *sys, int challenge_id, char *new_name);
+
+//Done
+Result change_system_room_name(ChallengeRoomSystem *sys, char *current_name, char *new_name);
+
+//Done
+Result best_time_of_system_challenge(ChallengeRoomSystem *sys, char *challenge_name, int *time);
+
+//Done
+Result most_popular_challenge(ChallengeRoomSystem *sys, char **challenge_name);
+
+
+#endif // CHALLENGE_SYSTEM_H_
