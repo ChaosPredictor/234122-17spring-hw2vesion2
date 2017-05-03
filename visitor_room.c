@@ -29,8 +29,7 @@ Result reset_challenge_activity(ChallengeActivity *activity) {
 	if ( activity == NULL) {
 		return NULL_PARAMETER;
 	}
-	free(activity->challenge);
-	free(activity->visitor);
+	activity->challenge=NULL;
 	return OK;
 }
 

@@ -90,6 +90,41 @@ Result create_system(char *init_file, ChallengeRoomSystem **sys) {
 		return MEMORY_PROBLEM;
 	}
 
+	// READ Challenges Rooms
+	numberRead(&tempNumber, file); //number of Challenge Rooms
+	//TODO - check return
+	//printf("\n%d\n", tempNumber);
+	(*sys)->numberOfChallengeRooms = tempNumber;
+	(*sys)->challengeRooms = \
+			malloc(sizeof(ChallengeRoom) * tempNumber);
+	if ((*sys)->challengeRooms == NULL) {
+		for(int i = 0; i < (*sys)->numberOfChallenges; i++ ) {
+			reset_challenge(&((*sys)->challenges[i]));
+		}
+		free((*sys)->challenges);
+		free((*sys)->name);
+		free(*sys);
+		fclose(file);
+		return MEMORY_PROBLEM;
+	}
+
+	int numberOfChallenges;
+	for(int i = 0; i < (*sys)->numberOfChallengeRooms; i++) {
+		if ( nameRead(tempName, file) == OK && fscanf(file, " %d", &numberOfChallenges)) {
+				//printf("Room Name: %s & chall: %d\n", tempName, numberOfChallenges);
+				result = init_room(&((*sys)->challengeRooms[i]), tempName, numberOfChallenges);
+				//TODO - put challenges laxecogfi...
+				for(int j = 0; j < numberOfChallenges; j++) {
+					fscanf(file, " %d", &tempNumber);
+					Challenge* challenge = findChallengeById(*sys, tempNumber);
+					init_challenge_activity(&((*sys)->challengeRooms[i].challenges[j]), challenge);
+				}
+
+		}
+	}
+
+	(*sys)->lastTime = 0;
+	(*sys)->visitor_head = malloc(sizeof(VisitorNode*));
 
 	fclose(file);
 	return OK;
@@ -112,12 +147,19 @@ Result destroy_system(ChallengeRoomSystem *sys, int destroy_time, char **most_po
 	if( result != OK ) {
 		return result;
 	}*/
-	reset_challenge(&(sys->challenges[0]));
-	reset_challenge(&(sys->challenges[1]));
-	reset_challenge(&(sys->challenges[2]));
-	reset_challenge(&(sys->challenges[3]));
-	reset_challenge(&(sys->challenges[4]));
-	reset_challenge(&(sys->challenges[5]));
+	int temp;
+	free(sys->visitor_head);
+	for(int i=0; i < sys->numberOfChallengeRooms; i++) {
+		temp = sys->challengeRooms[i].num_of_challenges;
+		for(int j=0; j < temp; j++) {
+			reset_challenge_activity(&(sys->challengeRooms[i].challenges[j]));
+		}
+		reset_room(&(sys->challengeRooms[i]));
+	}
+	free(sys->challengeRooms);
+	for(int i=0; i < sys->numberOfChallenges; i++) {
+		reset_challenge(&(sys->challenges[i]));
+	}
 	free(sys->challenges);
 	free(sys->name);
 	free(sys);
