@@ -18,9 +18,10 @@ int main(int argc, char **argv)
 
    r=create_system("test_1.txt", &sys);
    ASSERT("1.0" , r==OK)
-/*
+
    r=visitor_arrive(sys, "room_2", "visitor_1", 201, Medium, 5);
 
+/*
    r=visitor_arrive(sys, "room_1", "visitor_2", 202, Easy, 8);
 
    r=visitor_quit(sys, 203, 10);
@@ -75,6 +76,7 @@ int main(int argc, char **argv)
    r=best_time_of_system_challenge(sys, "challenge_4", &time);
    ASSERT("1.13" , time==2)
 */
+
    char *most_popular_challenge=NULL, *challenge_best_time=NULL;
    r=destroy_system(sys, 18, &most_popular_challenge, &challenge_best_time);
    ASSERT("1.14" , most_popular_challenge!=NULL && strcmp(most_popular_challenge, "challenge_1111")==0)
