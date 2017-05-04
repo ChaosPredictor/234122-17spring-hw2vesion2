@@ -262,13 +262,19 @@ Result visitor_quit(ChallengeRoomSystem *sys, int visitor_id, int quit_time) {
 	printf("visitor quit the room\n");
 
 	Visitor* keepVisitor = visitorNode->visitor;
-	//VisitorNode* keepVisitorNode = visitorNode;
-	//removeVisitorNodebyId(sys, visitor_id);
+
 	reset_visitor(keepVisitor);
 	free(keepVisitor);
 	if( visitorNode == sys->visitor_head ) {
 		sys->visitor_head = visitorNode->next;
+	} else {
+		VisitorNode *tempNode = sys->visitor_head;
+		while ( tempNode->next != NULL && tempNode->next != visitorNode ) {
+			tempNode = tempNode->next;
+		}
+		tempNode->next = visitorNode->next;
 	}
+	//removeVisitorNodebyId(sys, visitor_id);
 	free(visitorNode);
 
 	//TODO can free visitor
