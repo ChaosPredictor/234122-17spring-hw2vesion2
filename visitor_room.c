@@ -43,7 +43,7 @@ Result init_visitor(Visitor *visitor, char *name, int id) {
 	}
 
 	strcpy(visitor->visitor_name, name);
-	printf("\n\nNAME(in init):%s\n\n", visitor->visitor_name);
+	//printf("\n\nNAME(in init):%s\n\n", visitor->visitor_name);
 	visitor->visitor_id = id;
 
 	visitor->room_name = NULL;
@@ -57,7 +57,7 @@ Result reset_visitor(Visitor *visitor) {
 	if( visitor == NULL ) {
 		return NULL_PARAMETER;
 	}
-	printf("\n\nNAME(in reser_visit):%s\n\n", visitor->visitor_name);
+	//printf("\n\nNAME(in reser_visit):%s\n\n", visitor->visitor_name);
 	//TODO - can understand why I got core dumped
 	//free(visitor->visitor_name);
 	free(visitor->visitor_name);
@@ -195,7 +195,7 @@ Result visitor_quit_room(Visitor *visitor, int quit_time) {
 	challengeActivity->visitor = NULL;
 	visitor->room_name = NULL;
 	visitor->current_challenge = NULL;
-	reset_visitor(visitor);
+	//reset_visitor(visitor);
 	return OK;
 }
 

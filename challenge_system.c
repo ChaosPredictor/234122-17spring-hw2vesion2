@@ -124,9 +124,7 @@ Result create_system(char *init_file, ChallengeRoomSystem **sys) {
 	}
 
 	(*sys)->lastTime = 0;
-	(*sys)->visitor_head = malloc(sizeof(VisitorNode));
-	(*sys)->visitor_head->next = NULL;
-	//(*sys)->visitor_head = NULL;
+	(*sys)->visitor_head = NULL;
 	fclose(file);
 	return OK;
 }
@@ -141,6 +139,9 @@ Result destroy_system(ChallengeRoomSystem *sys, int destroy_time, char **most_po
 		return ILLEGAL_TIME;
 	}
 	all_visitors_quit(sys, destroy_time);
+	//visitor_quit(sys,201,8);
+	//visitor_quit(sys,202,9);
+	//visitor_quit(sys,222,10);
 	Result result = most_popular_challenge(sys, most_popular_challenge_p);
 	if( result != OK ) {
 		return result;
@@ -150,7 +151,7 @@ Result destroy_system(ChallengeRoomSystem *sys, int destroy_time, char **most_po
 		return result;
 	}
 	int temp;
-	free(sys->visitor_head);
+	//free(sys->visitor_head);
 	for(int i=0; i < sys->numberOfChallengeRooms; i++) {
 		temp = sys->challengeRooms[i].num_of_challenges;
 		for(int j=0; j < temp; j++) {
@@ -174,6 +175,7 @@ Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, char *visitor_n
 	if( sys == NULL) {
 		return NULL_PARAMETER;
 	}
+	//printAllVisitor(sys);
 	if( sys->lastTime > start_time) {
 		return ILLEGAL_TIME;
 	}
@@ -199,13 +201,13 @@ Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, char *visitor_n
 		//printf("7\n");
 		return MEMORY_PROBLEM;
 	}
-	//printf("\n\n	NAME:%s\n\n", visitor_name);
 	result = init_visitor(visitor, visitor_name, visitor_id);
 	if( result != OK) {
 		free(visitor);
 		//printf("8\n");
 		return result;
 	}
+
 	VisitorNode* visitorNode = createVisitorNode(visitor);
 	if(visitorNode == NULL ) {
 		free(visitor);
@@ -214,11 +216,17 @@ Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, char *visitor_n
 	}
 	VisitorNode* pVisitor = sys->visitor_head;
 	if ( pVisitor != NULL) {
+		printf("\n\nNO NULL\n\n");
 		while ( pVisitor->next ) {
 			pVisitor = pVisitor->next;
 		}
+		pVisitor->next = visitorNode;
+	} else {
+		sys->visitor_head = visitorNode;
+		printf("\n\nNULL\n\n");
 	}
-	pVisitor = visitorNode;
+
+	//printf("\n\n	NAME5:%s\n\n", sys->visitor_head->visitor->visitor_name);
 	result = visitor_enter_room(room, visitor, level, start_time);
 	if (result != OK ) {
 		free(visitor);
@@ -226,13 +234,14 @@ Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, char *visitor_n
 		return result;
 	}
 	sys->lastTime = start_time;
-	//printAllVisitor(sys);
+	printAllVisitor(sys);
 	//printf("0\n");
 	return OK;
 }
 
 
 Result visitor_quit(ChallengeRoomSystem *sys, int visitor_id, int quit_time) {
+	printf("\nvisitor quit\n");
 	if( sys == NULL) {
 		return NULL_PARAMETER;
 	}
@@ -241,40 +250,78 @@ Result visitor_quit(ChallengeRoomSystem *sys, int visitor_id, int quit_time) {
 	}
 	VisitorNode *visitorNode = findVisitorNodebyId(sys, visitor_id);
 	if( visitorNode == NULL ) {
+		printf("\not in room\n");
 		return NOT_IN_ROOM;
 	}
-	//printf("\n");
+	printf("\n");
 	//printAllVisitor(sys);
 	Result result = visitor_quit_room(visitorNode->visitor, quit_time);
 	if (result != OK ) {
 		return result;
 	}
+	printf("visitor quit the room\n");
+
 	Visitor* keepVisitor = visitorNode->visitor;
-	removeVisitorNodebyId(sys, visitor_id);
+	//VisitorNode* keepVisitorNode = visitorNode;
+	//removeVisitorNodebyId(sys, visitor_id);
+	reset_visitor(keepVisitor);
 	free(keepVisitor);
+	if( visitorNode == sys->visitor_head ) {
+		sys->visitor_head = visitorNode->next;
+	}
+	free(visitorNode);
+
 	//TODO can free visitor
-	//printf("\n");
-	//printAllVisitor(sys);
+	printf("\n");
+	printAllVisitor(sys);
 	//Visitor* visitor = visitorNode->visitor;
 	//free(visitor);
-	//TODO - why memory problem?
+	//TODO - why memory problem?*/
 	sys->lastTime = quit_time;
 	return OK;
 }
 
 Result all_visitors_quit(ChallengeRoomSystem *sys, int quit_time) {
+	printf("\nall visitor quit\n");
 	//TODO - testing
 	if( sys == NULL) {
 		return NULL_PARAMETER;
 	}
+
 	if( sys->lastTime > quit_time) {
 		return ILLEGAL_TIME;
 	}
 
-	Result result;
 	VisitorNode* pVisitor = sys->visitor_head, *temp;
+	//int i = 0;
+	while( pVisitor ) {
+		//i++;
+		temp = pVisitor;
+		pVisitor = temp->next;
+		visitor_quit(sys, temp->visitor->visitor_id, quit_time);
+		//printf("	visitor %d: %s  id:%d", i, pVisitor->visitor->visitor_name, pVisitor->visitor->visitor_id);
 
+	}
+	/*
+	//Result result;
+	VisitorNode* pVisitor = sys->visitor_head, *temp;
+	if( pVisitor != NULL) {
+		printf("visitor name:%s \n",pVisitor->visitor->visitor_name);
+		reset_visitor(pVisitor->visitor);
+		free(pVisitor->visitor);
+		while( pVisitor != NULL && pVisitor->next != NULL) {
+			temp = pVisitor->next;
+			pVisitor = temp;
+			printf("visitor name:%s \n",pVisitor->visitor->visitor_name);
+			reset_visitor(temp->visitor);
+			free(temp->visitor);
+			free(temp);
+		}
+		free(sys->visitor_head);
+	}
+	//
 
+	//VisitorNode *temp;
 	while ( pVisitor->next ) {
 
 		//printf("\nvisitor %s left\n", pVisitor->visitor->visitor_name);
@@ -291,12 +338,12 @@ Result all_visitors_quit(ChallengeRoomSystem *sys, int quit_time) {
 		//free(temp->visitor);
 		free(temp);
 	}
-	printf("\nall visitor\n");bv
+	//printf("\nall visitor\n");
 	result = visitor_quit_room(pVisitor->visitor, quit_time);
 	if (result != OK ) {
 		return result;
-	}
-	reset_visitor(pVisitor->visitor);
+	}*/
+
 	return OK;
 }
 
@@ -535,12 +582,14 @@ ChallengeRoom* findRoomByName(ChallengeRoomSystem *sys, char* name) {
 
 
 VisitorNode* createVisitorNode(Visitor* visitor) {
+	printf("\ncraete visitor node\n");
 	VisitorNode* visitorNode = malloc(sizeof(VisitorNode));
 	if ( visitorNode == NULL ) {
 		return NULL;
 	}
 	visitorNode->visitor = visitor;
 	visitorNode->next = NULL;
+	printf("visitor name:%s\n", visitorNode->visitor->visitor_name);
 	return visitorNode;
 }
 
@@ -576,23 +625,28 @@ Result removeVisitorNodebyId(ChallengeRoomSystem *sys, int id) {
 }
 
 Result printAllVisitor(ChallengeRoomSystem *sys) {
+	printf("print all\n");
 	VisitorNode* pVisitor = sys->visitor_head;
 	int i = 0;
-	while ( pVisitor->next ) {
+	while( pVisitor ) {
 		i++;
-		pVisitor = pVisitor->next;
+		//pVisitor = pVisitor->next;
 		printf("	visitor %d: %s  id:%d", i, pVisitor->visitor->visitor_name, pVisitor->visitor->visitor_id);
+		pVisitor = pVisitor->next;
+
 	}
 	return OK;
 }
 
 VisitorNode* findVisitorNodebyId(ChallengeRoomSystem *sys, int id) {
+	printf("find visitor\n");
 	//VisitorNode* pVisitor = sys->visitor_head;
-	struct VisitorNodeStr* pVisitor = sys->visitor_head;
+	VisitorNode* pVisitor = sys->visitor_head;
 	if( pVisitor == NULL)
 		return NULL;
-	pVisitor = pVisitor->next;
-	while ( pVisitor ) {
+	//pVisitor = pVisitor->next;
+	while( pVisitor != NULL ) {
+		printf("visitor found:%s\n", pVisitor->visitor->visitor_name);
 		if( pVisitor->visitor->visitor_id == id) {
 			return pVisitor;
 		}

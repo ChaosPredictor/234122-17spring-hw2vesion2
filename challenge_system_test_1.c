@@ -21,9 +21,11 @@ int main(int argc, char **argv)
 
    r=visitor_arrive(sys, "room_2", "visitor_1", 201, Medium, 5);
 
-/*
+
    r=visitor_arrive(sys, "room_1", "visitor_2", 202, Easy, 8);
 
+ //  r=visitor_arrive(sys, "room_1", "visitor_22", 222, Easy, 8);
+ /*
    r=visitor_quit(sys, 203, 10);
    ASSERT("1.1" , r==NOT_IN_ROOM)
 
