@@ -216,14 +216,14 @@ Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, char *visitor_n
 	}
 	VisitorNode* pVisitor = sys->visitor_head;
 	if ( pVisitor != NULL) {
-		printf("\n\nNO NULL\n\n");
+		//printf("\n\nNO NULL\n\n");
 		while ( pVisitor->next ) {
 			pVisitor = pVisitor->next;
 		}
 		pVisitor->next = visitorNode;
 	} else {
 		sys->visitor_head = visitorNode;
-		printf("\n\nNULL\n\n");
+		//printf("\n\nNULL\n\n");
 	}
 
 	//printf("\n\n	NAME5:%s\n\n", sys->visitor_head->visitor->visitor_name);
@@ -234,14 +234,14 @@ Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, char *visitor_n
 		return result;
 	}
 	sys->lastTime = start_time;
-	printAllVisitor(sys);
+	//printAllVisitor(sys);
 	//printf("0\n");
 	return OK;
 }
 
 
 Result visitor_quit(ChallengeRoomSystem *sys, int visitor_id, int quit_time) {
-	printf("\nvisitor quit\n");
+	//printf("\nvisitor quit\n");
 	if( sys == NULL) {
 		return NULL_PARAMETER;
 	}
@@ -250,16 +250,16 @@ Result visitor_quit(ChallengeRoomSystem *sys, int visitor_id, int quit_time) {
 	}
 	VisitorNode *visitorNode = findVisitorNodebyId(sys, visitor_id);
 	if( visitorNode == NULL ) {
-		printf("\not in room\n");
+		//printf("\not in room\n");
 		return NOT_IN_ROOM;
 	}
-	printf("\n");
+	//printf("\n");
 	//printAllVisitor(sys);
 	Result result = visitor_quit_room(visitorNode->visitor, quit_time);
 	if (result != OK ) {
 		return result;
 	}
-	printf("visitor quit the room\n");
+	//printf("visitor quit the room\n");
 
 	Visitor* keepVisitor = visitorNode->visitor;
 
@@ -278,8 +278,8 @@ Result visitor_quit(ChallengeRoomSystem *sys, int visitor_id, int quit_time) {
 	free(visitorNode);
 
 	//TODO can free visitor
-	printf("\n");
-	printAllVisitor(sys);
+	//printf("\n");
+	//printAllVisitor(sys);
 	//Visitor* visitor = visitorNode->visitor;
 	//free(visitor);
 	//TODO - why memory problem?*/
@@ -288,7 +288,7 @@ Result visitor_quit(ChallengeRoomSystem *sys, int visitor_id, int quit_time) {
 }
 
 Result all_visitors_quit(ChallengeRoomSystem *sys, int quit_time) {
-	printf("\nall visitor quit\n");
+	//printf("\nall visitor quit\n");
 	//TODO - testing
 	if( sys == NULL) {
 		return NULL_PARAMETER;
@@ -588,19 +588,19 @@ ChallengeRoom* findRoomByName(ChallengeRoomSystem *sys, char* name) {
 
 
 VisitorNode* createVisitorNode(Visitor* visitor) {
-	printf("\ncraete visitor node\n");
+	//printf("\ncraete visitor node\n");
 	VisitorNode* visitorNode = malloc(sizeof(VisitorNode));
 	if ( visitorNode == NULL ) {
 		return NULL;
 	}
 	visitorNode->visitor = visitor;
 	visitorNode->next = NULL;
-	printf("visitor name:%s\n", visitorNode->visitor->visitor_name);
+	//printf("visitor name:%s\n", visitorNode->visitor->visitor_name);
 	return visitorNode;
 }
 
 Result removeVisitorNodebyId(ChallengeRoomSystem *sys, int id) {
-	printf("\nremove run\n");
+	//printf("\nremove run\n");
 	VisitorNode* pVisitor = sys->visitor_head;
 	if( pVisitor->next->visitor->visitor_id == id ) {
 		if ( pVisitor->next == NULL ) {
@@ -645,14 +645,14 @@ Result printAllVisitor(ChallengeRoomSystem *sys) {
 }
 
 VisitorNode* findVisitorNodebyId(ChallengeRoomSystem *sys, int id) {
-	printf("find visitor\n");
+	//printf("find visitor\n");
 	//VisitorNode* pVisitor = sys->visitor_head;
 	VisitorNode* pVisitor = sys->visitor_head;
 	if( pVisitor == NULL)
 		return NULL;
 	//pVisitor = pVisitor->next;
 	while( pVisitor != NULL ) {
-		printf("visitor found:%s\n", pVisitor->visitor->visitor_name);
+		//printf("visitor found:%s\n", pVisitor->visitor->visitor_name);
 		if( pVisitor->visitor->visitor_id == id) {
 			return pVisitor;
 		}

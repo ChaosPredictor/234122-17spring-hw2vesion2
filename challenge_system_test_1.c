@@ -24,8 +24,7 @@ int main(int argc, char **argv)
 
    r=visitor_arrive(sys, "room_1", "visitor_2", 202, Easy, 8);
 
- //  r=visitor_arrive(sys, "room_1", "visitor_22", 222, Easy, 8);
- /*
+
    r=visitor_quit(sys, 203, 10);
    ASSERT("1.1" , r==NOT_IN_ROOM)
 
@@ -35,7 +34,7 @@ int main(int argc, char **argv)
    int time;
    r=best_time_of_system_challenge(sys, "challenge_2", &time);
    ASSERT("1.3" , time==4)
-
+/*
    r=change_system_room_name(sys, "room_1", "room_111");
 
    r=visitor_arrive(sys, "room_1", "visitor_3", 203, Easy, 8);
