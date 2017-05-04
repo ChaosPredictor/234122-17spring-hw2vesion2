@@ -34,7 +34,7 @@ int main(int argc, char **argv)
    int time;
    r=best_time_of_system_challenge(sys, "challenge_2", &time);
    ASSERT("1.3" , time==4)
-/*
+
    r=change_system_room_name(sys, "room_1", "room_111");
 
    r=visitor_arrive(sys, "room_1", "visitor_3", 203, Easy, 8);
@@ -76,7 +76,6 @@ int main(int argc, char **argv)
 
    r=best_time_of_system_challenge(sys, "challenge_4", &time);
    ASSERT("1.13" , time==2)
-*/
 
    char *most_popular_challenge=NULL, *challenge_best_time=NULL;
    r=destroy_system(sys, 18, &most_popular_challenge, &challenge_best_time);
