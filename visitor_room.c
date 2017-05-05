@@ -68,10 +68,11 @@ Result reset_visitor(Visitor *visitor) {
 }
 
 Result init_room(ChallengeRoom *room, char *name, int num_challenges) {
-	//printf("in init: %s   %d\n", name, num_challenges);
-
 	if ( name == NULL || room == NULL) {
 		return NULL_PARAMETER;
+	}
+	if(num_challenges < 1) {
+		return ILLEGAL_PARAMETER;
 	}
 
 	room->name = malloc(sizeof(char) * (strlen(name) + 1));
@@ -79,13 +80,14 @@ Result init_room(ChallengeRoom *room, char *name, int num_challenges) {
 		return MEMORY_PROBLEM;
 	}
 	strcpy(room->name, name);
-	room->num_of_challenges = num_challenges;
 
 	room->challenges = malloc(sizeof(ChallengeActivity) * num_challenges);
 	if ( room->challenges == NULL) {
 		free(room->name);
 		return MEMORY_PROBLEM;
 	}
+	room->num_of_challenges = num_challenges;
+
 	for(int i = 0; i < num_challenges; i++) {
 		room->challenges[i].start_time = -1;
 		room->challenges[i].visitor = NULL;
@@ -99,18 +101,20 @@ Result reset_room(ChallengeRoom *room) {
 		return NULL_PARAMETER;
 	}
 	free(room->challenges);
+	room->challenges = NULL;
 	free(room->name);
+	room->name = NULL;
+	room->num_of_challenges = 0;
 	return OK;
 }
 
 Result num_of_free_places_for_level(ChallengeRoom *room, Level level, int *places) {
-	if ( room == NULL ) {
+	if ( room == NULL || places == NULL) {
 		return NULL_PARAMETER;
 	}
 	*places = 0;
 	int num_of_challenges = room->num_of_challenges;
 	for(int i = 0; i < num_of_challenges; i++) {
-		//printf("level: %u, saved: %u\n", level,room->challenges[i].challenge->level);
 		if ( room->challenges[i].visitor == NULL && ( level == All_Levels || level == room->challenges[i].challenge->level) ) {
 			(*places)++;
 		}
@@ -134,6 +138,9 @@ Result change_room_name(ChallengeRoom *room, char *new_name) {
 Result room_of_visitor(Visitor *visitor, char **room_name) {
 	if ( visitor == NULL || room_name == NULL )	{
 		return NULL_PARAMETER;
+	}
+	if( visitor->room_name == NULL) {
+		return NOT_IN_ROOM;
 	}
 	*room_name = malloc( strlen(*(visitor->room_name)) + 1 );
 	if (*room_name == NULL ) {

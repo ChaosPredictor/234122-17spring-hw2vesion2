@@ -4,6 +4,8 @@
 #include <assert.h>
 
 #include "challenge_system.h"
+#define MAX_NAME_LENG 51 //Max leng 50 + 1 of end of string
+
 
 #define ASSERT(test_number, test_condition)  \
    if (!(test_condition)) {printf("\nTEST %s FAILED", test_number); } \
@@ -29,7 +31,7 @@ int main(int argc, char **argv)
 int unittest() {
 	printf("\n   Challenge   \n");
 	utChallenge();
-	printf("\n   Visitor_Room   \n");
+	printf("\n\n   Visitor_Room   \n");
 	utVisitorRoom();
 	return 0;
 }
@@ -47,11 +49,15 @@ int utChallenge() {
 		printf("MEMORY ISSUE!!!\n");
 		return 1;
 	}
+	char* challenge_name = "name";
+	Level level = Easy;
 	r = init_challenge(challenge, 1, NULL, 1);
 	ASSERT("2.0c - init_challenge" , r==NULL_PARAMETER)
-	r = init_challenge(challenge, 1, "name", 1);
+	r = init_challenge(challenge, 1, challenge_name, level);
 	ASSERT("2.0d - init_challenge" , r==OK && \
-			strcmp(challenge->name,"name") == 0 && \
+			strcmp(challenge->name, challenge_name) == 0 && \
+			&(challenge->name) != &(challenge_name) && \
+			challenge->level == level && \
 			challenge->best_time == 0 && \
 			challenge->best_time == 0)
 
@@ -140,10 +146,11 @@ int utVisitorRoom() {
 
 
 	r = init_challenge(challenge, 1, "name", 1);
-	ASSERT("3.0cPre - init_challenge" , r==OK && \
-			activity->challenge != challenge)
+	activity->challenge = NULL;
+	ASSERT("3.0cPre - init_challenge_activity" , r==OK && \
+			activity->challenge == NULL)
 	r = init_challenge_activity(activity, challenge);
-	ASSERT("3.0c - init_challenge" , r==OK && \
+	ASSERT("3.0c - init_challenge_activity" , r==OK && \
 			activity->challenge == challenge && \
 			activity->visitor == NULL && \
 			activity->start_time == 0);
@@ -163,13 +170,13 @@ int utVisitorRoom() {
 		printf("MEMORY ISSUE!!!\n");
 		return 1;
 	}
-	r = init_visitor(NULL, "visitor_name", 1001);
+	char* visitor_name = "VisitorName";
+	r = init_visitor(NULL, visitor_name, 1001);
 	ASSERT("3.2a - init_visitor" , r==NULL_PARAMETER)
 	r = init_visitor(visitor, NULL, 1001);
 	ASSERT("3.2b - init_visitor" , r==NULL_PARAMETER)
-
+	visitor->visitor_name = NULL;
 	ASSERT("3.2cPre - init_visitor" , visitor->visitor_name == NULL);
-	char* visitor_name = "VisitorName";
 	int id = 1001;
 	r = init_visitor(visitor, visitor_name, id);
 	ASSERT("3.2c - init_visitor" , r==OK && \
@@ -189,8 +196,196 @@ int utVisitorRoom() {
 			visitor->room_name == NULL && \
 			visitor->current_challenge == NULL)
 
+	ChallengeRoom *room = malloc(sizeof(ChallengeRoom));
+	char roomName[MAX_NAME_LENG];
+	char *room_name = roomName;
+	strcpy(room_name,"RoomName");
+	int number_of_challenges = 3;
+	r = init_room(NULL, room_name, number_of_challenges);
+	ASSERT("3.4a - init_room" , r==NULL_PARAMETER)
+	r = init_room(room, NULL, number_of_challenges);
+	ASSERT("3.4b - init_room" , r==NULL_PARAMETER)
+	r = init_room(room, room_name, 0);
+	ASSERT("3.4c - init_room" , r==ILLEGAL_PARAMETER)
+	r = init_room(NULL, NULL, 0);
+	ASSERT("3.4d - init_room" , r==NULL_PARAMETER)
+
+	r = init_room(room, room_name, number_of_challenges);
+	ASSERT("3.4e - init_room" , r==OK && \
+			strcmp(room->name, room_name) == 0 && \
+			&(room->name) != &room_name && \
+			room->num_of_challenges == number_of_challenges)
+	char text[] = "3.4e xx - init_room";
+	for(int i = 0; i < number_of_challenges; i++){
+		sprintf(text,"3.4e %d - init_room", i);
+		ASSERT(text, room->challenges[i].start_time == -1 && \
+				room->challenges[i].visitor == NULL && \
+				room->challenges[i].challenge == NULL);
+	}
+	r = reset_room(NULL);
+	ASSERT("3.5a - reset_room" , r==NULL_PARAMETER)
+	ASSERT("3.5bPre - reset_room" , room->name != NULL && \
+			room->challenges != NULL && \
+			room->num_of_challenges > 0)
+	r = reset_room(room);
+	ASSERT("3.5b - reset_room" , r==OK && \
+			room->name == NULL && \
+			room->challenges == NULL && \
+			room->num_of_challenges == 0)
+
+	Level level = Easy;
+	int places = 0;
+	r = num_of_free_places_for_level(NULL, level, &places);
+	ASSERT("3.6a - num_of_free_places_for_level" , r==NULL_PARAMETER)
+	r = num_of_free_places_for_level(room, level, NULL);
+	ASSERT("3.6b - num_of_free_places_for_level" , r==NULL_PARAMETER)
+
+	number_of_challenges = 9;
+	Challenge *challenges = malloc(sizeof(Challenge) * number_of_challenges);
+	if (challenge == NULL) {
+		printf("MEMORY ISSUE!!!\n");
+		return 1;
+	}
+	char challenges_name[] = "challege_xx";
+	//ChallengeRoom *room = malloc(sizeof(ChallengeRoom));
+	if (challenge == NULL) {
+		printf("MEMORY ISSUE!!!\n");
+		return 1;
+	}
+	r = init_room(room, room_name, number_of_challenges);
+	for(int i = 0; i < number_of_challenges; i++) {
+		sprintf(challenges_name,"challege_%02d", i);
+		//printf("challe name: %s\n", challenges_name);
+		if( i > 1 ) {
+			if ( i < 5) {
+				level = Medium;
+			} else {
+				level = Hard;
+			}
+		} else {
+			level = Easy;
+		}
+		r = init_challenge(&challenges[i], i, challenges_name, level);
+		if( r != OK ){
+			printf("fail on 3.6Pre - num_of_free_places_for_level (init_challenge)");
+			return 1;
+		}
+		r = init_challenge_activity(&(room->challenges[i]), &challenges[i]);
+		if( r != OK ){
+			printf("fail on 3.6Pre - num_of_free_places_for_level (init_challenge_activity)");
+			return 1;
+		}
 
 
+	}
+
+
+	ASSERT("3.6cPre - num_of_free_places_for_level" , places == 0)
+	r = num_of_free_places_for_level(room, All_Levels, &places);
+	ASSERT("3.6c0 - num_of_free_places_for_level" , r==OK && places == 9)
+	r = num_of_free_places_for_level(room, Easy, &places);
+	ASSERT("3.6c1 - num_of_free_places_for_level" , r==OK && places == 2)
+	int time = 1;
+	visitor_enter_room(room, visitor, Easy, time);
+	r = num_of_free_places_for_level(room, Easy, &places);
+	ASSERT("3.6c2 - num_of_free_places_for_level" , r==OK && places == 1)
+	r = num_of_free_places_for_level(room, Medium, &places);
+	ASSERT("3.6c3 - num_of_free_places_for_level" , r==OK && places == 3)
+	r = num_of_free_places_for_level(room, Hard, &places);
+	ASSERT("3.6c4 - num_of_free_places_for_level" , r==OK && places == 4)
+	r = num_of_free_places_for_level(room, All_Levels, &places);
+	ASSERT("3.6c5 - num_of_free_places_for_level" , r==OK && places == 8)
+
+
+	//printf("room challe name: %s\n", (room->challenges[0]).challenge->name);
+
+	char* new_name = "NewRoomName";
+	ASSERT("3.7aPre - change_room_name" , strcmp(room->name,room_name) == 0)
+	r = change_room_name(NULL, new_name);
+	ASSERT("3.7a - change_room_name" , r==NULL_PARAMETER)
+	r = change_room_name(room, NULL);
+	ASSERT("3.7b - change_room_name" , r==NULL_PARAMETER)
+	ASSERT("3.7cPre - change_room_name" , strcmp(room->name,room_name) == 0)
+	r = change_room_name(room, new_name);
+	ASSERT("3.7c - change_room_name" , r==OK && \
+			strcmp(room->name,new_name) == 0 && \
+			&(room->name) != &new_name)
+
+	char *name = NULL;
+	r = room_of_visitor(NULL, &name);
+	ASSERT("3.8a - room_of_visitor" , r==NULL_PARAMETER)
+	r = room_of_visitor(visitor, NULL);
+	ASSERT("3.8b - room_of_visitor" , r==NULL_PARAMETER)
+
+	Visitor *visitor2 = malloc(sizeof(Visitor));
+	if (visitor2 == NULL) {
+		printf("MEMORY ISSUE!!!\n");
+		return 1;
+	}
+	r = init_visitor(visitor2, visitor_name, id);
+	r = room_of_visitor(visitor2, &name);
+	ASSERT("3.8c - room_of_visitor" , r==NOT_IN_ROOM)
+	ASSERT("3.8dPre - room_of_visitor" , name == NULL)
+	r = room_of_visitor(visitor, &name);
+	ASSERT("3.8d - room_of_visitor" , r==OK && \
+			strcmp(name,new_name) == 0 && \
+			&name != visitor->room_name)
+	free(name);
+
+
+	time = 5;
+	level = Easy;
+	r = visitor_enter_room(NULL, visitor, level, time);
+	ASSERT("3.9a - visitor_enter_room" , r==NULL_PARAMETER)
+	r = visitor_enter_room(room, NULL, level, time);
+	ASSERT("3.9b - visitor_enter_room" , r==NULL_PARAMETER)
+	r = visitor_enter_room(room, visitor, level, time);
+	ASSERT("3.9c - visitor_enter_room" , r==ALREADY_IN_ROOM)
+
+	ASSERT("3.9dPre - visitor_enter_room" , visitor2->room_name == NULL && \
+			visitor2->current_challenge == NULL && \
+			(room->challenges[1]).visitor == NULL && \
+			(room->challenges[1]).start_time == 0)
+	r = visitor_enter_room(room, visitor2, Easy, time);
+	ASSERT("3.9d - visitor_enter_room" , r==OK && \
+			strcmp(*(visitor2->room_name), room->name) == 0 && \
+			visitor2->room_name == &(room->name) && \
+			visitor2->current_challenge == &(room->challenges[1]) && \
+			(room->challenges[1]).visitor == visitor2 && \
+			(room->challenges[1]).start_time == time )
+
+	Visitor *visitor3 = malloc(sizeof(Visitor));
+	if (visitor3 == NULL) {
+		printf("MEMORY ISSUE!!!\n");
+		return 1;
+	}
+	r = init_visitor(visitor3, visitor_name, id);
+
+	r = visitor_enter_room(room, visitor3, level, time);
+	ASSERT("3.9d - visitor_enter_room" , r==NO_AVAILABLE_CHALLENGES)
+	r = visitor_enter_room(room, visitor2, level, time);
+	ASSERT("3.9e - visitor_enter_room" , r==ALREADY_IN_ROOM)
+	r = visitor_enter_room(room, NULL, level, time);
+	ASSERT("3.9f - visitor_enter_room" , r==NULL_PARAMETER)
+
+	reset_visitor(visitor3);
+	free(visitor3);
+	reset_visitor(visitor2);
+	free(visitor2);
+
+	for(int i = 0; i < number_of_challenges; i++) {
+		r = reset_challenge(&challenges[i]);
+	}
+	reset_room(room);
+	free(challenges);
+
+
+
+
+
+
+
+	free(room);
 	free(visitor);
 	r=reset_challenge(challenge);
 	ASSERT("3.x - init_challenge" , r==OK)
