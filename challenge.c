@@ -35,8 +35,10 @@ Result change_name(Challenge *challenge, char *name) {
 	if ( name == NULL || challenge == NULL) {
 		return NULL_PARAMETER;
 	}
-	challenge->name = realloc(challenge->name, sizeof(char) * (strlen(name) + 1));
+	Challenge *temp = challenge;
+	challenge->name = realloc(temp->name, sizeof(char) * (strlen(name) + 1));
 	if ( challenge->name == NULL) {
+		free(temp->name);
 		return MEMORY_PROBLEM;
 	}
 	strcpy(challenge->name, name);
