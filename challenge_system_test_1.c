@@ -12,6 +12,7 @@
 int official();
 int unittest();
 int utChallenge();
+int utVisitorRoom();
 
 int main(int argc, char **argv)
 {
@@ -28,7 +29,8 @@ int main(int argc, char **argv)
 int unittest() {
 	printf("\n   Challenge   \n");
 	utChallenge();
-
+	printf("\n   Visitor_Room   \n");
+	utVisitorRoom();
 	return 0;
 }
 
@@ -114,6 +116,86 @@ int utChallenge() {
 
 	free(challenge);
 
+	return 0;
+}
+
+int utVisitorRoom() {
+
+	Result r=OK;
+	Challenge *challenge = malloc(sizeof(Challenge));
+	if (challenge == NULL) {
+		printf("MEMORY ISSUE!!!\n");
+		return 1;
+	}
+	ChallengeActivity *activity = malloc(sizeof(ChallengeActivity));
+	if (activity == NULL) {
+		printf("MEMORY ISSUE!!!\n");
+		return 1;
+	}
+
+	r = init_challenge_activity(NULL, challenge);
+	ASSERT("3.0a - init_challenge_activity" , r==NULL_PARAMETER)
+	r = init_challenge_activity(activity, NULL);
+	ASSERT("3.0b - init_challenge_activity" , r==NULL_PARAMETER)
+
+
+	r = init_challenge(challenge, 1, "name", 1);
+	ASSERT("3.0cPre - init_challenge" , r==OK && \
+			activity->challenge != challenge)
+	r = init_challenge_activity(activity, challenge);
+	ASSERT("3.0c - init_challenge" , r==OK && \
+			activity->challenge == challenge && \
+			activity->visitor == NULL && \
+			activity->start_time == 0);
+
+	r = reset_challenge_activity(NULL);
+	ASSERT("3.1a - reset_challenge" , r==NULL_PARAMETER)
+
+	ASSERT("3.1bPre - init_challenge" , activity->challenge == challenge)
+	r = reset_challenge_activity(activity);
+	ASSERT("3.1b - init_challenge" , r==OK && \
+			activity->challenge == NULL && \
+			activity->visitor == NULL && \
+			activity->start_time == 0)
+
+	Visitor *visitor = malloc(sizeof(Visitor));
+	if (visitor == NULL) {
+		printf("MEMORY ISSUE!!!\n");
+		return 1;
+	}
+	r = init_visitor(NULL, "visitor_name", 1001);
+	ASSERT("3.2a - init_visitor" , r==NULL_PARAMETER)
+	r = init_visitor(visitor, NULL, 1001);
+	ASSERT("3.2b - init_visitor" , r==NULL_PARAMETER)
+
+	ASSERT("3.2cPre - init_visitor" , visitor->visitor_name == NULL);
+	char* visitor_name = "VisitorName";
+	int id = 1001;
+	r = init_visitor(visitor, visitor_name, id);
+	ASSERT("3.2c - init_visitor" , r==OK && \
+			strcmp(visitor->visitor_name, "VisitorName") == 0 && \
+			&(visitor->visitor_name) != &(visitor_name) && \
+			visitor->visitor_id == id && \
+			visitor->room_name == NULL && \
+			visitor->current_challenge == NULL);
+
+	r = reset_visitor(NULL);
+	ASSERT("3.3a - reset_visitor" , r==NULL_PARAMETER)
+	ASSERT("3.3bPre - reset_visitor" , visitor->visitor_name != NULL)
+	r = reset_visitor(visitor);
+	ASSERT("3.3b - reset_visitor" , r==OK && \
+			visitor->visitor_name == NULL && \
+			visitor->visitor_id == 0 && \
+			visitor->room_name == NULL && \
+			visitor->current_challenge == NULL)
+
+
+
+	free(visitor);
+	r=reset_challenge(challenge);
+	ASSERT("3.x - init_challenge" , r==OK)
+	free(activity);
+	free(challenge);
 	return 0;
 }
 
