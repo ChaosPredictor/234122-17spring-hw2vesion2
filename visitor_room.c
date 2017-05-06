@@ -13,10 +13,6 @@ typedef struct visitorNode {
 } Node;
 
 
-Result isVisitorNowInRoom(Visitor* visitor_id);
-Challenge* findChallengeInRoom(ChallengeRoom* room, Level level);
-
-
 Result init_challenge_activity(ChallengeActivity *activity, Challenge *challenge) {
 	if ( activity == NULL || challenge == NULL) {
 		return NULL_PARAMETER;
@@ -123,7 +119,6 @@ Result num_of_free_places_for_level(ChallengeRoom *room, Level level, int *place
 }
 
 Result change_room_name(ChallengeRoom *room, char *new_name) {
-	//TODO testing
 	if ( room == NULL || new_name == NULL ) {
 		return NULL_PARAMETER;
 	}
@@ -165,27 +160,22 @@ Result visitor_enter_room(ChallengeRoom *room, Visitor *visitor, Level level, in
 	int index_of_challenge;
 	int num_of_challenges = room->num_of_challenges;
 	for(int i = 0; i < num_of_challenges; i++) {
-		//printf("level: %u, saved: %u\n", level,room->challenges[i].challenge->level);
 		if ( room->challenges[i].visitor == NULL && ( level == All_Levels || level == room->challenges[i].challenge->level) ) {			index_of_challenge = i;
 			break;
 		}
 	}
-	//TODO - inc_num_visitis
 	Result result = inc_num_visits(room->challenges[index_of_challenge].challenge);
 	if( result != OK ) {
 		return result;
 	}
 	room->challenges[index_of_challenge].start_time = start_time;
 	room->challenges[index_of_challenge].visitor = visitor;
-	//init visitor
 	visitor->room_name = &(room->name);
 	visitor->current_challenge = &(room->challenges[index_of_challenge]);
 	return OK;
 }
 
 Result visitor_quit_room(Visitor *visitor, int quit_time) {
-	//printf("\nvisitor %s quit\n", visitor->visitor_name);
-	//TODO time ligal
 	if( visitor == NULL ) {
 		return NULL_PARAMETER;
 	}
@@ -195,26 +185,13 @@ Result visitor_quit_room(Visitor *visitor, int quit_time) {
 	struct SChallengeActivity *challengeActivity = visitor->current_challenge;
 
 	int time = quit_time - challengeActivity->start_time;
-	set_best_time_of_challenge(challengeActivity->challenge, time);
+	set_best_time_of_challenge((*challengeActivity).challenge, time);
 
-	challengeActivity->start_time = -1;
 	challengeActivity->visitor = NULL;
+	challengeActivity->start_time = 0;
 	visitor->room_name = NULL;
 	visitor->current_challenge = NULL;
-	//reset_visitor(visitor);
 	return OK;
 }
-
-
-Result isVisitorNowInRoom(Visitor* visitor) {
-	//TODO - check if visitor exist;
-	return OK;
-}
-
-Challenge* findChallengeInRoom(ChallengeRoom *room, Level level) {
-	//TODO - find challenge in room;
-	return NULL;
-}
-
 
 
