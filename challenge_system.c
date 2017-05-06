@@ -263,30 +263,30 @@ Result change_challenge_name(ChallengeRoomSystem *sys, int challenge_id, char *n
 	if( sys == NULL || new_name == NULL ) return NULL_PARAMETER;
 	Challenge *challenge = findChallengeById(sys, challenge_id);
 	if ( challenge == NULL ) return ILLEGAL_PARAMETER;
-	challenge->name = realloc(challenge->name, sizeof(char) * (strlen(new_name) + 1));
+	challenge->name = realloc(challenge->name, sizeof(char) * \
+			(strlen(new_name) + 1));
 	if ( challenge->name == NULL) return MEMORY_PROBLEM;
 	strcpy(challenge->name, new_name);
 	return OK;
 }
 
 Result change_system_room_name(ChallengeRoomSystem *sys, char *current_name,  char *new_name) {
-	//TODO testing
 	if( sys == NULL || current_name == NULL || new_name == NULL ) {
 		return NULL_PARAMETER;
 	}
 	ChallengeRoom *room = findRoomByName(sys, current_name);
-	if ( room == NULL ) {
-		return ILLEGAL_PARAMETER;
-	}
+	if ( room == NULL ) return ILLEGAL_PARAMETER;
 	return change_room_name(room, new_name);
 }
 
 Result best_time_of_system_challenge(ChallengeRoomSystem *sys, char *challenge_name, int *time) {
-	//TODO testing
-	*time = 0;
-	if( sys == NULL || challenge_name == NULL || time == NULL ) return NULL_PARAMETER;
+	if( sys == NULL || challenge_name == NULL || time == NULL ) {
+		return NULL_PARAMETER;
+	}
+
 	Challenge* challenge = findChallengeByName(sys, challenge_name);
 	if( challenge == NULL ) return ILLEGAL_PARAMETER;
+	*time = 0;
 	Result result = best_time_of_challenge(challenge, time);
 	if( result != OK ) return result;
 	return OK;
@@ -294,7 +294,6 @@ Result best_time_of_system_challenge(ChallengeRoomSystem *sys, char *challenge_n
 
 
 Result most_popular_challenge(ChallengeRoomSystem *sys, char **challenge_name) {
-	//TODO testing
 	if( sys == NULL || challenge_name == NULL ) {
 		return NULL_PARAMETER;
 	}
@@ -307,7 +306,6 @@ Result most_popular_challenge(ChallengeRoomSystem *sys, char **challenge_name) {
 		if( result != OK ){
 			return result;
 		}
-		//temp = (*sys).challenges[i].num_visits;
 		if ( temp > max) {
 			max = temp;
 			strcpy(tempName, (*sys).challenges[i].name);
@@ -315,7 +313,6 @@ Result most_popular_challenge(ChallengeRoomSystem *sys, char **challenge_name) {
 			strcpy(tempName, (*sys).challenges[i].name);
 		}
 	}
-	//printf("tempName: %s\n", tempName);
 	if ( strcmp(tempName, "") != 0 ) {
 		*challenge_name = malloc(sizeof(char) * (strlen(tempName) + 1) );
 		if( *challenge_name == NULL ) {
@@ -329,23 +326,18 @@ Result most_popular_challenge(ChallengeRoomSystem *sys, char **challenge_name) {
 }
 
 
-
+//TODO private
 Result find_best_time_of_system(ChallengeRoomSystem *sys, char **challenge_name) {
-	//TODO testing
-	if( sys == NULL || challenge_name == NULL ) {
-		return NULL_PARAMETER;
-	}
+	if( sys == NULL || challenge_name == NULL ) return NULL_PARAMETER;
 	int number_of_challenges = (*sys).numberOfChallenges;
 	int min = -1, temp;
 	char tempName[MAX_NAME_LENG] = "";
 	*challenge_name = NULL;
 	for(int i = 0; i < number_of_challenges; i++) {
 		Result result = best_time_of_system_challenge(sys, (*sys).challenges[i].name, &temp);
-		//printf("\n\n %d \n\n", temp);
 		if( result != OK ){
 			return result;
 		}
-		//temp = (*sys).challenges[i].num_visits;
 		if ( temp != 0 && min > temp ) {
 			min = temp;
 			strcpy(tempName, (*sys).challenges[i].name);
@@ -357,12 +349,9 @@ Result find_best_time_of_system(ChallengeRoomSystem *sys, char **challenge_name)
 			strcpy(tempName, (*sys).challenges[i].name);
 		}
 	}
-	//printf("tempName: %s\n", tempName);
 	if ( strcmp(tempName, "") != 0 ) {
 		*challenge_name = malloc(sizeof(char) * (strlen(tempName) + 1) );
-		if( *challenge_name == NULL ) {
-			return MEMORY_PROBLEM;
-		}
+		if( *challenge_name == NULL ) return MEMORY_PROBLEM;
 		strcpy(*challenge_name, tempName);
 	} else {
 		challenge_name = NULL;
@@ -370,7 +359,6 @@ Result find_best_time_of_system(ChallengeRoomSystem *sys, char **challenge_name)
 	return OK;
 }
 
-//TODO private
 Result nameRead(char* name, FILE* inputFile) {
 	if (name == NULL) {
 		return NULL_PARAMETER;
@@ -450,21 +438,15 @@ Challenge* findChallengeByName(ChallengeRoomSystem *sys, char *name) {
 	return NULL;
 }
 
-
 ChallengeRoom* findRoomByName(ChallengeRoomSystem *sys, char* name) {
-	//printf("ROOM: %s\n", name);
 	int number_of_challengeRooms = (*sys).numberOfChallengeRooms;
 	for(int i = 0; i < number_of_challengeRooms; i++) {
-		//printf("%d %s  \n", i , (*sys).challengeRooms[i].name);
 		if ( strcmp((*sys).challengeRooms[i].name, name) == 0) {
-			//printf("%d %s  \n", i , (*sys).challengeRooms[i].name);
 			return &((*sys).challengeRooms[i]);
 		}
 	}
-	//printf("\n");
 	return NULL;
 }
-
 
 VisitorNode* createVisitorNode(Visitor* visitor) {
 	//printf("\ncraete visitor node\n");

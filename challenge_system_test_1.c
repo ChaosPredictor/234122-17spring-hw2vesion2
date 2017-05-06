@@ -623,37 +623,105 @@ int utChallengeSystem_public() {
 	ASSERT("4.5g - system_room_of_visitor", r==OK)
 	free(tempName);
 
-	char new_name[] = "challengeNewName";
+	char challenge_new_name[] = "challengeNewName";
+	char challenge_name[] = "challenge_1";
 	int challenge_id = 11;
-	r = change_challenge_name(NULL, challenge_id, new_name);
+	r = change_challenge_name(NULL, challenge_id, challenge_new_name);
 	ASSERT("4.6a - change_challenge_name", r==NULL_PARAMETER)
 	r = change_challenge_name(sys, challenge_id, NULL);
 	ASSERT("4.6b - change_challenge_name", r==NULL_PARAMETER)
 	challenge_id = 12;
-	r = change_challenge_name(sys, challenge_id, new_name);
+	r = change_challenge_name(sys, challenge_id, challenge_new_name);
 	ASSERT("4.6c - change_challenge_name", r==ILLEGAL_PARAMETER)
 	challenge_id = 11;
 	int temp_time = 0;
-	r=best_time_of_system_challenge(sys, "challenge_1", &temp_time);
+	r=best_time_of_system_challenge(sys, challenge_name, &temp_time);
 	ASSERT("4.6dPre1 - change_challenge_name", r==OK && \
 			temp_time == 1)
-	r=best_time_of_system_challenge(sys, "challengeNewName", &temp_time);
-	ASSERT("4.6dPre1 - change_challenge_name", r==ILLEGAL_PARAMETER && \
-			temp_time == 0)
-	r = change_challenge_name(sys, challenge_id, new_name);
+	r=best_time_of_system_challenge(sys, challenge_new_name, &temp_time);
+	ASSERT("4.6dPre2 - change_challenge_name", r==ILLEGAL_PARAMETER)
+	r = change_challenge_name(sys, challenge_id, challenge_new_name);
 	ASSERT("4.6d - change_challenge_name", r==OK)
-	r=best_time_of_system_challenge(sys, "challenge_1", &temp_time);
-	ASSERT("4.6dPost1 - change_challenge_name", r==ILLEGAL_PARAMETER && \
-			temp_time == 0)
-	r=best_time_of_system_challenge(sys, "challengeNewName", &temp_time);
+	r=best_time_of_system_challenge(sys, challenge_name, &temp_time);
+	ASSERT("4.6dPost1 - change_challenge_name", r==ILLEGAL_PARAMETER)
+	r=best_time_of_system_challenge(sys, challenge_new_name, &temp_time);
 	ASSERT("4.6dPost2 - change_challenge_name", r==OK && \
 			temp_time == 1)
 
+	char room_old_name[] = "room_1";
+	char room_new_name[] = "RoomNewName";
+	r = change_system_room_name(NULL, room_old_name, room_new_name);
+	ASSERT("4.7a - change_system_room_name", r==NULL_PARAMETER)
+	r = change_system_room_name(sys, NULL, room_new_name);
+	ASSERT("4.7b - change_system_room_name", r==NULL_PARAMETER)
+	r = change_system_room_name(sys, room_old_name, NULL);
+	ASSERT("4.7c - change_system_room_name", r==NULL_PARAMETER)
+	r = change_system_room_name(sys, "room_11", room_new_name);
+	ASSERT("4.7d - change_system_room_name", r==ILLEGAL_PARAMETER)
+
+	r = system_room_of_visitor(sys, visitor1_name, &tempName);
+	ASSERT("4.7ePre - change_system_room_name", r==OK && \
+			strcmp(tempName, room_old_name) == 0)
+	free(tempName);
+	r = change_system_room_name(sys, room_old_name, room_new_name);
+	ASSERT("4.7e - change_system_room_name", r==OK)
+	r = system_room_of_visitor(sys, visitor1_name, &tempName);
+	ASSERT("4.7ePost - change_system_room_name", r==OK && \
+			strcmp(tempName, room_new_name) == 0)
+	free(tempName);
+
+	temp_time = -1;
+	//char challenge_name[] = "challenge_1";
+	r = best_time_of_system_challenge(NULL, challenge_new_name, &temp_time);
+	ASSERT("4.8a - best_time_of_system_challenge", r==NULL_PARAMETER && \
+			temp_time == -1)
+	r = best_time_of_system_challenge(sys, NULL, &temp_time);
+	ASSERT("4.8b - best_time_of_system_challenge", r==NULL_PARAMETER && \
+			temp_time == -1)
+	r = best_time_of_system_challenge(sys, challenge_new_name, NULL);
+	ASSERT("4.8c - best_time_of_system_challenge", r==NULL_PARAMETER && \
+			temp_time == -1)
+	r = best_time_of_system_challenge(sys, "challenge", &temp_time);
+	ASSERT("4.8d - best_time_of_system_challenge", r==ILLEGAL_PARAMETER && \
+			temp_time == -1)
+	r = best_time_of_system_challenge(sys, challenge_new_name, &temp_time);
+	ASSERT("4.8e - best_time_of_system_challenge", r==OK && \
+			temp_time == 1)
+
+	ChallengeRoomSystem *sys2=NULL;
+	r = create_system("test_1.txt", &sys2);
+	ASSERT("4.8fPre - create_system" , r==OK)
+	temp_time = -1;
+	r = best_time_of_system_challenge(sys2, challenge_name, &temp_time);
+	ASSERT("4.8f - best_time_of_system_challenge", r==OK && \
+			temp_time == 0)
+	r = destroy_system(sys2, destroy_time, &most_popular_name, &best_time_name);
+
+	char *temp_challenge_name = "";
+	r = most_popular_challenge(NULL, &temp_challenge_name);
+	ASSERT("4.9a - most_popular_challenge", r==NULL_PARAMETER)
+	r = most_popular_challenge(sys, NULL);
+	ASSERT("4.9b - most_popular_challenge", r==NULL_PARAMETER)
+	r = most_popular_challenge(sys, &temp_challenge_name);
+	ASSERT("4.9c - most_popular_challenge", r==OK && \
+			strcmp(temp_challenge_name, "challengeNewName") == 0)
+	free(temp_challenge_name);
+	temp_challenge_name = "";
+	r = most_popular_challenge(sys, &temp_challenge_name);
+	ASSERT("4.9d - most_popular_challenge", r==OK && \
+			strcmp(temp_challenge_name, "challengeNewName") == 0)
+	free(temp_challenge_name);
+	r = create_system("test_1.txt", &sys2);
+	ASSERT("4.9ePre - most_popular_challenge" , r==OK)
+	temp_time = -1;
+	r = most_popular_challenge(sys2, &temp_challenge_name);
+	ASSERT("4.9e - most_popular_challenge", r==OK && \
+			temp_challenge_name == NULL)
+	r = destroy_system(sys2, destroy_time, &most_popular_name, &best_time_name);
 
 	r = destroy_system(sys, destroy_time, &most_popular_name, &best_time_name);
 	free(most_popular_name);
 	free(best_time_name);
-
 
 	return 0;
 }
