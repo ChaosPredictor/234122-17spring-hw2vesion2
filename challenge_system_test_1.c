@@ -91,8 +91,7 @@ int official() {
 	free(room);
 
 	r=system_room_of_visitor(sys, "visitor_3", &room);
-	//ASSERT("1.11" , r==OK && room!=NULL && strcmp(room, "room_111")==0)
-	ASSERT("1.11" , r==OK )
+	ASSERT("1.11" , r==OK && room!=NULL && strcmp(room, "room_111")==0)
 	free(room);
 
 	r=all_visitors_quit(sys, 17);
@@ -508,14 +507,14 @@ int utChallengeSystem_public() {
 			sys != NULL)
 
 	int destroy_time = 4;
-	char *most_popular = NULL;
-	char *best_time = NULL;
-	r = destroy_system(NULL, destroy_time, &most_popular, &best_time);
+	char *most_popular_name = NULL;
+	char *best_time_name = NULL;
+	r = destroy_system(NULL, destroy_time, &most_popular_name, &best_time_name);
 	ASSERT("4.1a - destroy_system" , r==NULL_PARAMETER)
-	r = destroy_system(sys, destroy_time, &most_popular,  &best_time);
+	r = destroy_system(sys, destroy_time, &most_popular_name,  &best_time_name);
 	ASSERT("4.1b - destroy_system" , r==OK && \
-			best_time == NULL && \
-			most_popular == NULL)
+			best_time_name == NULL && \
+			most_popular_name == NULL)
 	create_system("test_1.txt", &sys);
 	char room_name[] = "room_1";
 	char visitor1_name[] = "visitor_1", visitor2_name[] = "visitor_2";
@@ -526,19 +525,19 @@ int utChallengeSystem_public() {
 			visitor1_id, level1, start_time);
 	r = visitor_arrive(sys, room_name, visitor2_name, \
 			visitor2_id, level2, start_time);
-	r = destroy_system(sys, destroy_time, &most_popular, &best_time);
+	r = destroy_system(sys, destroy_time, &most_popular_name, &best_time_name);
 	ASSERT("4.1c - destroy_system", r==ILLEGAL_TIME )
 	destroy_time = 10;
-	ASSERT("4.1dPre - destroy_system", most_popular == NULL && \
-			best_time == NULL)
-	r = destroy_system(sys, destroy_time, &most_popular, &best_time);
+	ASSERT("4.1dPre - destroy_system", most_popular_name == NULL && \
+			best_time_name == NULL)
+	r = destroy_system(sys, destroy_time, &most_popular_name, &best_time_name);
 	ASSERT("4.1d - destroy_system", r==OK && \
-			most_popular != NULL && \
-			strcmp(most_popular, "challenge_1") == 0 && \
-			best_time != NULL && \
-			strcmp(best_time, "challenge_1") == 0)
-	free(most_popular);
-	free(best_time);
+			most_popular_name != NULL && \
+			strcmp(most_popular_name, "challenge_1") == 0 && \
+			best_time_name != NULL && \
+			strcmp(best_time_name, "challenge_1") == 0)
+	free(most_popular_name);
+	free(best_time_name);
 
 	start_time = 5;
 	create_system("test_1.txt", &sys);
@@ -587,12 +586,73 @@ int utChallengeSystem_public() {
 	r = visitor_quit(sys, visitor1_id, quit_time);
 	ASSERT("4.3d - visitor_quit", r==NOT_IN_ROOM)
 
+	quit_time = 3;
+	r = all_visitors_quit(sys, quit_time);
+	ASSERT("4.4a - all_visitors_quit", r==ILLEGAL_TIME)
+	quit_time = 8;
+	r = all_visitors_quit(NULL, quit_time);
+	ASSERT("4.4b - all_visitors_quit", r==NULL_PARAMETER)
+	start_time = 7;
+	r = visitor_arrive(sys, room_name, visitor1_name, visitor1_id, level1, start_time);
+	ASSERT("4.4cPre1 - all_visitors_quit", r==OK)
+	r = visitor_arrive(sys, room_name, visitor2_name, visitor2_id, level2, start_time);
+	ASSERT("4.4cPre2 - all_visitors_quit", r==OK)
+	r = all_visitors_quit(sys, quit_time);
+	ASSERT("4.4c - all_visitors_quit", r==OK)
+	r = all_visitors_quit(sys, quit_time);
+	ASSERT("4.4d - all_visitors_quit", r==NOT_IN_ROOM)
 
 
+	r = system_room_of_visitor(NULL, visitor1_name, &tempName);
+	ASSERT("4.5a - system_room_of_visitor", r==NULL_PARAMETER)
+	r = system_room_of_visitor(sys, NULL, &tempName);
+	ASSERT("4.5b - system_room_of_visitor", r==ILLEGAL_PARAMETER)
+	r = system_room_of_visitor(sys, visitor1_name, NULL);
+	ASSERT("4.5c - system_room_of_visitor", r==ILLEGAL_PARAMETER)
+	r = system_room_of_visitor(NULL, NULL, NULL);
+	ASSERT("4.5d - system_room_of_visitor", r==NULL_PARAMETER)
+	r = system_room_of_visitor(sys, visitor1_name, &tempName);
+	ASSERT("4.5e - system_room_of_visitor", r==NOT_IN_ROOM)
+	start_time = 10;
+	r = visitor_arrive(sys, room_name, visitor1_name, visitor1_id, level1, start_time);
+	ASSERT("4.5fPre - system_room_of_visitor", r==OK)
+	r = system_room_of_visitor(sys, visitor1_name, &tempName);
+	ASSERT("4.5f - system_room_of_visitor", r==OK)
+	free(tempName);
+	r = system_room_of_visitor(sys, visitor1_name, &tempName);
+	ASSERT("4.5g - system_room_of_visitor", r==OK)
+	free(tempName);
 
-	r = destroy_system(sys, destroy_time, &most_popular, &best_time);
-	free(most_popular);
-	free(best_time);
+	char new_name[] = "challengeNewName";
+	int challenge_id = 11;
+	r = change_challenge_name(NULL, challenge_id, new_name);
+	ASSERT("4.6a - change_challenge_name", r==NULL_PARAMETER)
+	r = change_challenge_name(sys, challenge_id, NULL);
+	ASSERT("4.6b - change_challenge_name", r==NULL_PARAMETER)
+	challenge_id = 12;
+	r = change_challenge_name(sys, challenge_id, new_name);
+	ASSERT("4.6c - change_challenge_name", r==ILLEGAL_PARAMETER)
+	challenge_id = 11;
+	int temp_time = 0;
+	r=best_time_of_system_challenge(sys, "challenge_1", &temp_time);
+	ASSERT("4.6dPre1 - change_challenge_name", r==OK && \
+			temp_time == 1)
+	r=best_time_of_system_challenge(sys, "challengeNewName", &temp_time);
+	ASSERT("4.6dPre1 - change_challenge_name", r==ILLEGAL_PARAMETER && \
+			temp_time == 0)
+	r = change_challenge_name(sys, challenge_id, new_name);
+	ASSERT("4.6d - change_challenge_name", r==OK)
+	r=best_time_of_system_challenge(sys, "challenge_1", &temp_time);
+	ASSERT("4.6dPost1 - change_challenge_name", r==ILLEGAL_PARAMETER && \
+			temp_time == 0)
+	r=best_time_of_system_challenge(sys, "challengeNewName", &temp_time);
+	ASSERT("4.6dPost2 - change_challenge_name", r==OK && \
+			temp_time == 1)
+
+
+	r = destroy_system(sys, destroy_time, &most_popular_name, &best_time_name);
+	free(most_popular_name);
+	free(best_time_name);
 
 
 	return 0;
