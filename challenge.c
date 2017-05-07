@@ -28,6 +28,10 @@ Result reset_challenge(Challenge *challenge) {
 		return NULL_PARAMETER;
 	}
 	free(challenge->name);
+	challenge->name = NULL;
+	challenge->level = 0;
+	challenge->best_time = 0;
+	challenge->num_visits = 0;
 	return OK;
 }
 
@@ -50,7 +54,9 @@ Result set_best_time_of_challenge(Challenge *challenge, int time) {
 	if ( challenge == NULL) {
 		return NULL_PARAMETER;
 	}
-	if ( time < 0 || time < challenge->best_time ) {
+	if ( time < 0 ) {
+		return ILLEGAL_PARAMETER;
+	} else if ( time > challenge->best_time && challenge->best_time != 0 ) {
 		return ILLEGAL_PARAMETER;
 	}
 	challenge->best_time = time;

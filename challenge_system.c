@@ -149,27 +149,47 @@ Result destroy_system(ChallengeRoomSystem *sys, int destroy_time, char **most_po
 Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, char *visitor_name, int visitor_id, Level level, int start_time) {
 	if( sys == NULL) return NULL_PARAMETER;
 	if( sys->lastTime > start_time) return ILLEGAL_TIME;
-	if( room_name == NULL ) return ILLEGAL_PARAMETER;
+	Visitor* visitor = malloc(sizeof(*visitor));
+	if( visitor == NULL ) return MEMORY_PROBLEM;
+	VisitorNode* visitorNode = createVisitorNode(visitor);
+	if( visitorNode == NULL ) {
+		free(visitor);
+		return MEMORY_PROBLEM;
+	}
+	if( room_name == NULL ) {
+		free(visitor);
+		free(visitorNode);
+		return ILLEGAL_PARAMETER;
+	}
 	ChallengeRoom* room = findRoomByName(sys, room_name);
 	int places = 0;
 	Result result = num_of_free_places_for_level(room, level, &places);
 	if( result != OK ) {
+		free(visitor);
+		free(visitorNode);
 		return result;
 	}
-	if( places == 0 ) return NO_AVAILABLE_CHALLENGES;
-	if( visitor_name == NULL ) return ILLEGAL_PARAMETER;
-	if( findVisitorNodebyId(sys, visitor_id) != NULL ) return ALREADY_IN_ROOM;
-	Visitor* visitor = malloc(sizeof(*visitor));
-	if( visitor == NULL ) return MEMORY_PROBLEM;
+	if( visitor_name == NULL ) {
+		free(visitor);
+		free(visitorNode);
+		return ILLEGAL_PARAMETER;
+	}
+	if( findVisitorNodebyId(sys, visitor_id) != NULL ) {
+		free(visitor);
+		free(visitorNode);
+		return ALREADY_IN_ROOM;
+	}
+	if( places == 0 ) {
+		free(visitor);
+		free(visitorNode);
+		return NO_AVAILABLE_CHALLENGES;
+	}
+
 	result = init_visitor(visitor, visitor_name, visitor_id);
 	if( result != OK) {
 		free(visitor);
+		free(visitorNode);
 		return result;
-	}
-	VisitorNode* visitorNode = createVisitorNode(visitor);
-	if(visitorNode == NULL ) {
-		free(visitor);
-		return MEMORY_PROBLEM;
 	}
 	VisitorNode* pVisitor = sys->visitor_head;
 	if ( pVisitor != NULL) {
@@ -183,6 +203,7 @@ Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, char *visitor_n
 	result = visitor_enter_room(room, visitor, level, start_time);
 	if (result != OK ) {
 		free(visitor);
+		free(visitorNode);
 		return result;
 	}
 	sys->lastTime = start_time;

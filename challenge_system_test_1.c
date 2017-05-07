@@ -1,3 +1,16 @@
+/*///////////////////////////////////////////////////////////////////////////*/
+/*                                                                           */
+/*			    Technion MTM - 234122 Spring2017 HW2 Testing                 */
+/*                                                                           */
+/*                               V0.2                                        */
+/*                                                                           */
+/*                       By: Dmitry Kuznichov                                */
+/*                                                                           */
+/*             MIT License (excluding official function) 2017                */
+/*                                                                           */
+/*///////////////////////////////////////////////////////////////////////////*/
+
+
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
@@ -26,6 +39,7 @@ int main(int argc, char **argv)
 	printf("\n================Unit test================\n");
 	unittest();
 	printf("\n");
+	return 0;
 
 }
 
@@ -143,7 +157,11 @@ int utChallenge() {
 	r = reset_challenge(NULL);
 	ASSERT("2.1a - reset_challenge" , r==NULL_PARAMETER)
 	r = reset_challenge(challenge);
-	ASSERT("2.1b - reset_challenge" , r==OK)
+	ASSERT("2.1b - reset_challenge" , r==OK&& \
+			challenge->name == NULL && \
+			challenge->level == 0 && \
+			challenge->best_time == 0 && \
+			challenge->best_time == 0)
 
 	r = init_challenge(challenge, 2, "name", 1);
 	r = change_name(NULL, "newName");
@@ -165,21 +183,21 @@ int utChallenge() {
 	ASSERT("2.3c - set_best_time_of_challenge" , r==OK && \
 			challenge->best_time == 25)
 	r = set_best_time_of_challenge(challenge, 30);
-	ASSERT("2.3d - set_best_time_of_challenge" , r==OK && \
-			challenge->best_time == 30)
+	ASSERT("2.3d - set_best_time_of_challenge" , r==ILLEGAL_PARAMETER && \
+			challenge->best_time == 25)
 	r = set_best_time_of_challenge(challenge, 15);
-	ASSERT("2.3e - set_best_time_of_challenge" , r==ILLEGAL_PARAMETER && \
-			challenge->best_time == 30)
+	ASSERT("2.3e - set_best_time_of_challenge" , r==OK && \
+			challenge->best_time == 15)
 
 	int time = 0;
 	r = best_time_of_challenge(NULL, &time);
 	ASSERT("2.4a - best_time_of_challenge" , r==NULL_PARAMETER)
-	r = best_time_of_challenge(challenge, NULL);
-	ASSERT("2.4b - best_time_of_challenge" , r==NULL_PARAMETER)
-	r = set_best_time_of_challenge(challenge, 30);
+	//r = best_time_of_challenge(challenge, NULL);
+	//ASSERT("2.4b - best_time_of_challenge" , r==NULL_PARAMETER)
+	r = set_best_time_of_challenge(challenge, 15);
 	ASSERT("2.4cPre - best_time_of_challenge" , r==OK && time == 0)
 	r = best_time_of_challenge(challenge, &time);
-	ASSERT("2.4c - best_time_of_challenge" , r==OK && time == 30)
+	ASSERT("2.4c - best_time_of_challenge" , r==OK && time == 15)
 
 	r = inc_num_visits(NULL);
 	ASSERT("2.5a - inc_num_visits" , r==NULL_PARAMETER)
@@ -561,12 +579,12 @@ int utChallengeSystem_public() {
 	ASSERT("4.2fPost - visitor_arrive", r==OK && \
 			strcmp(tempName, room_name) == 0)
 	free(tempName);
-	r = visitor_arrive(sys, room_name, visitor1_name, visitor1_id, Hard, start_time);
+	r = visitor_arrive(sys, room_name, visitor1_name, visitor1_id, Medium, start_time);
 	ASSERT("4.2g - visitor_arrive", r==ALREADY_IN_ROOM)
 	r = visitor_arrive(NULL, NULL, NULL, visitor2_id, level1, start_time);
 	ASSERT("4.2h - visitor_arrive", r==NULL_PARAMETER)
 	r = visitor_arrive(sys, room_name, NULL, visitor2_id, Medium, start_time);
-	ASSERT("4.2i - visitor_arrive", r==NO_AVAILABLE_CHALLENGES)
+	ASSERT("4.2i - visitor_arrive", r==ILLEGAL_PARAMETER)
 	r = visitor_arrive(sys, NULL, visitor2_name, visitor2_id, level1, start_time);
 	ASSERT("4.2j - visitor_arrive", r==ILLEGAL_PARAMETER)
 
