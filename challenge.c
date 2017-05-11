@@ -19,7 +19,7 @@ Result init_challenge(Challenge *challenge, int id, char *name, Level level) {
 	challenge->id = id;
 	challenge->level = level;
 	challenge->best_time = 0;
-	challenge->num_visits = 0;
+	challenge->num_visits_param = 0;
 	return OK;
 }
 
@@ -31,7 +31,7 @@ Result reset_challenge(Challenge *challenge) {
 	challenge->name = NULL;
 	challenge->level = 0;
 	challenge->best_time = 0;
-	challenge->num_visits = 0;
+	challenge->num_visits_param = 0;
 	return OK;
 }
 
@@ -69,6 +69,7 @@ Result best_time_of_challenge(Challenge *challenge, int *time) {
 		return NULL_PARAMETER;
 	}
 	*time = challenge->best_time;
+
 	return OK;
 }
 
@@ -76,16 +77,16 @@ Result inc_num_visits(Challenge *challenge) {
 	if ( challenge == NULL) {
 		return NULL_PARAMETER;
 	}
-	challenge->num_visits += 1;
+	challenge->num_visits_param += 1;
 	return OK;
 }
 
 //TODO - change function name
-Result num_visits_function(Challenge *challenge, int *visits) {
+Result num_visits(Challenge *challenge, int *visits) {
 	//TODO - to ask what to do if int* NULL
 	if ( challenge == NULL || visits == NULL) {
 		return NULL_PARAMETER;
 	}
-	*visits = challenge->num_visits;
+	*visits = challenge->num_visits_param;
 	return OK;
 }

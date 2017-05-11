@@ -9,7 +9,7 @@ typedef struct SChallenge
    char *name;
    Level level;
    int best_time;
-   int num_visits;
+   int num_visits_param;
 } Challenge;
 //Done
 Result init_challenge(Challenge *challenge, int id, char *name, Level level);
@@ -25,6 +25,6 @@ Result best_time_of_challenge(Challenge *challenge, int *time);
 Result inc_num_visits(Challenge *challenge);
 //Done
 //TODO - change function name
-Result num_visits_function(Challenge *challenge, int *visits);
+Result num_visits(Challenge *challenge, int *visits);
 
 #endif // CHALLENGE_H_

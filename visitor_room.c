@@ -157,11 +157,15 @@ Result visitor_enter_room(ChallengeRoom *room, Visitor *visitor, Level level, in
 	if( places == 0 ) {
 		return NO_AVAILABLE_CHALLENGES;
 	}
-	int index_of_challenge;
+	int index_of_challenge = -1;
 	int num_of_challenges = room->num_of_challenges;
 	for(int i = 0; i < num_of_challenges; i++) {
-		if ( room->challenges[i].visitor == NULL && ( level == All_Levels || level == room->challenges[i].challenge->level) ) {			index_of_challenge = i;
-			break;
+		if( room->challenges[i].visitor == NULL && ( level == All_Levels || level == room->challenges[i].challenge->level) ) {
+			if(index_of_challenge == -1) {
+				index_of_challenge = i;
+			} else if(strcmp((room->challenges[index_of_challenge]).challenge->name,(room->challenges[i]).challenge->name) > 0) {
+				index_of_challenge = i;
+			}
 		}
 	}
 	Result result = inc_num_visits(room->challenges[index_of_challenge].challenge);

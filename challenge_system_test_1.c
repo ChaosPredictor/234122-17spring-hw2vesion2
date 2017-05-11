@@ -30,8 +30,7 @@ int utChallenge();
 int utVisitorRoom();
 int utChallengeSystem_public();
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	printf("\n================Official================\n");
 	official();
 	printf("\n");
@@ -192,8 +191,8 @@ int utChallenge() {
 	int time = 0;
 	r = best_time_of_challenge(NULL, &time);
 	ASSERT("2.4a - best_time_of_challenge" , r==NULL_PARAMETER)
-	//r = best_time_of_challenge(challenge, NULL);
-	//ASSERT("2.4b - best_time_of_challenge" , r==NULL_PARAMETER)
+	r = best_time_of_challenge(challenge, NULL);
+	ASSERT("2.4b - best_time_of_challenge" , r==NULL_PARAMETER)
 	r = set_best_time_of_challenge(challenge, 15);
 	ASSERT("2.4cPre - best_time_of_challenge" , r==OK && time == 0)
 	r = best_time_of_challenge(challenge, &time);
@@ -201,21 +200,21 @@ int utChallenge() {
 
 	r = inc_num_visits(NULL);
 	ASSERT("2.5a - inc_num_visits" , r==NULL_PARAMETER)
-	ASSERT("2.5bPre - inc_num_visits" , challenge->num_visits == 0)
+	ASSERT("2.5bPre - inc_num_visits" , challenge->num_visits_param == 0)
 	r = inc_num_visits(challenge);
-	ASSERT("2.5b - inc_num_visits" , r==OK && challenge->num_visits == 1)
+	ASSERT("2.5b - inc_num_visits" , r==OK && challenge->num_visits_param == 1)
 
 	int visits = -1;
-	r = num_visits_function(NULL, &visits);
+	r = num_visits(NULL, &visits);
 	ASSERT("2.6a - num_visits" , r==NULL_PARAMETER)
-	r = num_visits_function(challenge, NULL);
+	r = num_visits(challenge, NULL);
 	ASSERT("2.6b - num_visits" , r==NULL_PARAMETER)
-	challenge->num_visits = 0;
+	challenge->num_visits_param = 0;
 	ASSERT("2.6cPre - num_visits" , visits == -1)
-	r = num_visits_function(challenge, &visits);
+	r = num_visits(challenge, &visits);
 	ASSERT("2.6c - num_visits" , r==OK && visits == 0)
 	r = inc_num_visits(challenge);
-	r = num_visits_function(challenge, &visits);
+	r = num_visits(challenge, &visits);
 	ASSERT("2.6d - num_visits" , r==OK && visits == 1)
 
 	r = reset_challenge(challenge);
@@ -355,7 +354,6 @@ int utVisitorRoom() {
 	r = init_room(room, room_name, number_of_challenges);
 	for(int i = 0; i < number_of_challenges; i++) {
 		sprintf(challenges_name,"challege_%02d", i);
-		//printf("challe name: %s\n", challenges_name);
 		if( i > 1 ) {
 			if ( i < 5) {
 				level = Medium;
@@ -397,7 +395,6 @@ int utVisitorRoom() {
 	ASSERT("3.6c5 - num_of_free_places_for_level" , r==OK && places == 8)
 
 
-	//printf("room challe name: %s\n", (room->challenges[0]).challenge->name);
 
 	char* new_name = "NewRoomName";
 	ASSERT("3.7aPre - change_room_name" , strcmp(room->name,room_name) == 0)
@@ -422,6 +419,7 @@ int utVisitorRoom() {
 		printf("MEMORY ISSUE!!!\n");
 		return 1;
 	}
+
 	r = init_visitor(visitor2, visitor_name, id);
 	r = room_of_visitor(visitor2, &name);
 	ASSERT("3.8c - room_of_visitor" , r==NOT_IN_ROOM)
