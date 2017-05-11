@@ -69,7 +69,6 @@ Result best_time_of_challenge(Challenge *challenge, int *time) {
 		return NULL_PARAMETER;
 	}
 	*time = challenge->best_time;
-
 	return OK;
 }
 
