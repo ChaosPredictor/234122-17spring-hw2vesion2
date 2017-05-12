@@ -5,15 +5,7 @@
 
 typedef struct SChallengeRoomSystem
 {
-
-/*	char *name;
-	Challenge* challenges;
-	int numberOfChallenges;
-	ChallengeRoom* challengeRooms;
-	int numberOfChallengeRooms;
-	int lastTime;
-	struct VisitorNodeStr* visitor_head;*/
-#include "challenge_room_system_fields.h"
+	#include "challenge_room_system_fields.h"
 
 } ChallengeRoomSystem;
 

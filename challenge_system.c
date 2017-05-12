@@ -9,24 +9,22 @@
 
 #define MAX_NAME_LENG 51 //Max leng 50 + 1 of end of string
 
-
 typedef struct VisitorNodeStr {
 	Visitor *visitor;
 	struct VisitorNodeStr* next;
 } VisitorNode;
 
-typedef int (*CompareFunctionDefinition)(Challenge, void*);
+typedef int (*CompareFunctionDefinition)(Challenge, void*) ;
 
 static Result findBestTimeOfSystem(ChallengeRoomSystem *sys, char **challenge_name);
 static ChallengeRoom* findRoomByName(ChallengeRoomSystem *sys, char* name);
 static VisitorNode* createVisitorNode(Visitor* visitor);
 static VisitorNode* findVisitorNodebyName(ChallengeRoomSystem *sys, char *name);
 static VisitorNode* findVisitorNodebyId(ChallengeRoomSystem *sys, int id);
-//static Challenge* findChallengeById(ChallengeRoomSystem *sys, int id);
-static Challenge* findChallengeByName(ChallengeRoomSystem *sys, char *name);
-static Challenge* findChallenge(ChallengeRoomSystem *sys, void* re, int (*CompareFunctionDefinition)(Challenge, void*));
+static Challenge* findChallenge(ChallengeRoomSystem *sys, void* value, int (*CompareFunctionDefinition)(Challenge, void*));
 int compareId(Challenge challenge, void* id);
 int compareName(Challenge challenge, void* id);
+int freeVisitorAndVisitorNode(Visitor* visitor, VisitorNode* visitor_node);
 
 
 Result create_system(char *init_file, ChallengeRoomSystem **sys) {
@@ -105,7 +103,6 @@ Result create_system(char *init_file, ChallengeRoomSystem **sys) {
 						temp_name, number_of_challenges);
 				for(int j = 0; j < number_of_challenges; j++) {
 					fscanf(file, " %d", &temp_number);
-					//Challenge* challenge = findChallengeById(*sys, temp_number);
 					Challenge* challenge = findChallenge(*sys, &temp_number, compareId);
 					init_challenge_activity(\
 							&((*sys)->challenge_rooms[i].challenges[j]), challenge);
@@ -159,39 +156,29 @@ Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, char *visitor_n
 	if ( visitor_node == NULL ) {
 		free(visitor);
 		return MEMORY_PROBLEM;
-	}
-	if ( room_name == NULL ) {
-		free(visitor);
-		free(visitor_node);
+	} else if ( room_name == NULL ) {
+		freeVisitorAndVisitorNode(visitor, visitor_node);
 		return ILLEGAL_PARAMETER;
 	}
 	ChallengeRoom* room = findRoomByName(sys, room_name);
 	int places = 0;
 	Result result = num_of_free_places_for_level(room, level, &places);
 	if ( result != OK ) {
-		free(visitor);
-		free(visitor_node);
+		freeVisitorAndVisitorNode(visitor, visitor_node);
 		return result;
-	}
-	if ( visitor_name == NULL ) {
-		free(visitor);
-		free(visitor_node);
+	} else if ( visitor_name == NULL ) {
+		freeVisitorAndVisitorNode(visitor, visitor_node);
 		return ILLEGAL_PARAMETER;
-	}
-	if ( findVisitorNodebyId(sys, visitor_id) != NULL ) {
-		free(visitor);
-		free(visitor_node);
+	} else if ( findVisitorNodebyId(sys, visitor_id) != NULL ) {
+		freeVisitorAndVisitorNode(visitor, visitor_node);
 		return ALREADY_IN_ROOM;
-	}
-	if ( places == 0 ) {
-		free(visitor);
-		free(visitor_node);
+	} else if ( places == 0 ) {
+		freeVisitorAndVisitorNode(visitor, visitor_node);
 		return NO_AVAILABLE_CHALLENGES;
 	}
 	result = init_visitor(visitor, visitor_name, visitor_id);
 	if ( result != OK) {
-		free(visitor);
-		free(visitor_node);
+		freeVisitorAndVisitorNode(visitor, visitor_node);
 		return result;
 	}
 	VisitorNode* ptr_visitor = sys->visitor_head;
@@ -205,8 +192,7 @@ Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, char *visitor_n
 	}
 	result = visitor_enter_room(room, visitor, level, start_time);
 	if (result != OK ) {
-		free(visitor);
-		free(visitor_node);
+		freeVisitorAndVisitorNode(visitor, visitor_node);
 		return result;
 	}
 	sys->last_time = start_time;
@@ -287,7 +273,8 @@ Result best_time_of_system_challenge(ChallengeRoomSystem *sys, char *challenge_n
 	if ( sys == NULL || challenge_name == NULL || time == NULL ) {
 		return NULL_PARAMETER;
 	}
-	Challenge* challenge = findChallengeByName(sys, challenge_name);
+	//Challenge* challenge = findChallengeByName(sys, challenge_name);
+	Challenge* challenge = findChallenge(sys, challenge_name, compareName);
 	if ( challenge == NULL ) {
 		return ILLEGAL_PARAMETER;
 	}
@@ -419,7 +406,7 @@ static Challenge* findChallengeById(ChallengeRoomSystem *sys, int id) {
 		}
 	}
 	return NULL;
-}*/
+}
 
 static Challenge* findChallengeByName(ChallengeRoomSystem *sys, char *name) {
 	int number_of_challenges = (*sys).number_of_challenges;
@@ -429,7 +416,7 @@ static Challenge* findChallengeByName(ChallengeRoomSystem *sys, char *name) {
 		}
 	}
 	return NULL;
-}
+}*/
 
 
 static Challenge* findChallenge(ChallengeRoomSystem *sys, void* value, CompareFunctionDefinition compareFunction) {
@@ -442,15 +429,20 @@ static Challenge* findChallenge(ChallengeRoomSystem *sys, void* value, CompareFu
 	return NULL;
 }
 
-
 int compareId(Challenge challenge, void* id) {
     if ( challenge.id == *(int*)id ) return 0;
     return 1;
 }
 
-int compareName(Challenge challenge, void* id) {
-    //if ( challenge.id == *(int*)id ) return 0;
-    return strcmp(challenge.name, (char*)id);
+int compareName(Challenge challenge, void* name) {
+    return strcmp(challenge.name, (char*)name);
 }
+
+int freeVisitorAndVisitorNode(Visitor* visitor, VisitorNode* visitor_node) {
+	free(visitor);
+	free(visitor_node);
+	return 0;
+}
+
 
 

@@ -23,7 +23,7 @@ bool flag = true;
     }
 }*/
 
-int main(int argc, char **argv)
+int main2(int argc, char **argv)
 {
    /** --------------------------------------------------------------------- **/
    /** --------- HW 2 tests by Michal Guttmann and Amit Shuster ------------ **/
