@@ -101,7 +101,9 @@ Result num_of_free_places_for_level(ChallengeRoom *room, Level level, int *place
 	*places = 0;
 	int num_of_challenges = room->num_of_challenges;
 	for (int i = 0; i < num_of_challenges; i++) {
-		if ( room->challenges[i].visitor == NULL && ( level == All_Levels || level == room->challenges[i].challenge->level) ) {
+		if ( room->challenges[i].visitor == NULL && \
+				( level == All_Levels || \
+						level == room->challenges[i].challenge->level) ) {
 			(*places)++;
 		}
 	}
@@ -150,10 +152,13 @@ Result visitor_enter_room(ChallengeRoom *room, Visitor *visitor, Level level, in
 	int index_of_challenge = -1;
 	int num_of_challenges = room->num_of_challenges;
 	for (int i = 0; i < num_of_challenges; i++) {
-		if ( room->challenges[i].visitor == NULL && ( level == All_Levels || level == room->challenges[i].challenge->level) ) {
+		if ( room->challenges[i].visitor == NULL && \
+				( level == All_Levels || \
+						level == room->challenges[i].challenge->level) ) {
 			if (index_of_challenge == -1) {
 				index_of_challenge = i;
-			} else if(strcmp((room->challenges[index_of_challenge]).challenge->name,(room->challenges[i]).challenge->name) > 0) {
+			} else if(strcmp((room->challenges[index_of_challenge]).challenge->name,\
+					(room->challenges[i]).challenge->name) > 0) {
 				index_of_challenge = i;
 			}
 		}
