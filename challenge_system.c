@@ -16,15 +16,25 @@ typedef struct VisitorNodeStr {
 
 typedef int (*CompareFunctionDefinition)(Challenge, void*) ;
 
-static Result findBestTimeOfSystem(ChallengeRoomSystem *sys, char **challenge_name);
+static Result findBestTimeOfSystem(ChallengeRoomSystem *sys, \
+		char **challenge_name);
 static ChallengeRoom* findRoomByName(ChallengeRoomSystem *sys, char* name);
 static VisitorNode* createVisitorNode(Visitor* visitor);
 static VisitorNode* findVisitorNodebyName(ChallengeRoomSystem *sys, char *name);
 static VisitorNode* findVisitorNodebyId(ChallengeRoomSystem *sys, int id);
-static Challenge* findChallenge(ChallengeRoomSystem *sys, void* value, int (*CompareFunctionDefinition)(Challenge, void*));
-int compareId(Challenge challenge, void* id);
-int compareName(Challenge challenge, void* id);
-int freeVisitorAndVisitorNode(Visitor* visitor, VisitorNode* visitor_node);
+static Challenge* findChallenge(ChallengeRoomSystem *sys, void* value, \
+		int (*CompareFunctionDefinition)(Challenge, void*));
+static int compareId(Challenge challenge, void* id);
+static int compareName(Challenge challenge, void* id);
+static int freeVisitorAndVisitorNode(Visitor* visitor, \
+		VisitorNode* visitor_node);
+static Result addVisitorNode(ChallengeRoomSystem *sys, \
+		VisitorNode* visitor_node);
+static Result initializeSystem(ChallengeRoomSystem *sys, FILE *file);
+static Result initializeChallenges(ChallengeRoomSystem *sys, FILE *file);
+static Result initializeRooms(ChallengeRoomSystem *sys, FILE *file);
+static Result initializeChallengeActivitys(ChallengeRoomSystem *sys, \
+		ChallengeRoom room, FILE *file, int number_of_challenges);
 
 
 Result create_system(char *init_file, ChallengeRoomSystem **sys) {
@@ -36,80 +46,22 @@ Result create_system(char *init_file, ChallengeRoomSystem **sys) {
 		return MEMORY_PROBLEM;
 	}
 
-	char temp_name[MAX_NAME_LENG];
-	//readName(temp_name, file);
-	fscanf(file, "%s", temp_name);
-	(*sys)->name = malloc(sizeof(char) * (strlen(temp_name) + 1));
-	if ((*sys)->name == NULL) {
-		free(*sys);
-		fclose(file);
-		return MEMORY_PROBLEM;
+	Result result  = initializeSystem(*sys, file);
+	if (result != OK ) {
+		return result;
 	}
-	strcpy((*sys)->name, temp_name);
 
-	//TODO separated function
-	// READ challenges
-	int temp_number = 0;
-	fscanf(file, "%d", &temp_number);
-	(*sys)->number_of_challenges = temp_number;
-	(*sys)->challenges = malloc(sizeof(Challenge) * temp_number);
-	if ((*sys)->challenges == NULL) {
-		free((*sys)->name);
-		free(*sys);
-		fclose(file);
-		return MEMORY_PROBLEM;
+	result  = initializeChallenges(*sys, file);
+	if (result != OK ) {
+		return result;
 	}
-	int id, level;
-	int offset_level = 1;
-	Result result = OK;
-	for(int i = 0; i < (*sys)->number_of_challenges; i++) {
-		if ( fscanf(file,"%s", temp_name) == 1 && \
-				fscanf(file, " %d %d\n", &id, &level)) {
-			//offset change 1-Easy 2-Medium 3-Hard to 0-2 values
-			result = init_challenge(&((*sys)->challenges[i]), id, \
-					temp_name, level - offset_level);
-			if( result == OK ) {
-				continue;
-			}
-		}
-		free((*sys)->challenges);
-		free((*sys)->name);
-		free(*sys);
-		fclose(file);
-		return MEMORY_PROBLEM;
+
+	result  = initializeRooms(*sys, file);
+	if (result != OK ) {
+		return result;
 	}
 
 
-	//TODO separated function
-	// READ Challenges Rooms
-	fscanf(file, "%d", &temp_number);
-	(*sys)->number_of_challenge_rooms = temp_number;
-	(*sys)->challenge_rooms = malloc(sizeof(ChallengeRoom) * temp_number);
-	if ((*sys)->challenge_rooms == NULL) {
-		for(int i = 0; i < (*sys)->number_of_challenges; i++ ) {
-			reset_challenge(&((*sys)->challenges[i]));
-		}
-		free((*sys)->challenges);
-		free((*sys)->name);
-		free(*sys);
-		fclose(file);
-		return MEMORY_PROBLEM;
-	}
-	int number_of_challenges;
-	for (int i = 0; i < (*sys)->number_of_challenge_rooms; i++) {
-		if ( fscanf(file,"%s", temp_name) == 1 && \
-				fscanf(file, " %d", &number_of_challenges)) {
-				result = init_room(&((*sys)->challenge_rooms[i]), \
-						temp_name, number_of_challenges);
-				for(int j = 0; j < number_of_challenges; j++) {
-					fscanf(file, " %d", &temp_number);
-					Challenge* challenge = findChallenge(*sys, &temp_number, compareId);
-					init_challenge_activity(\
-							&((*sys)->challenge_rooms[i].challenges[j]), challenge);
-				}
-
-		}
-	}
 
 	(*sys)->last_time = 0;
 	(*sys)->visitor_head = NULL;
@@ -117,7 +69,8 @@ Result create_system(char *init_file, ChallengeRoomSystem **sys) {
 	return OK;
 }
 
-Result destroy_system(ChallengeRoomSystem *sys, int destroy_time, char **most_popular_challenge_p, char **challenge_best_time) {
+Result destroy_system(ChallengeRoomSystem *sys, int destroy_time, \
+		char **most_popular_challenge_p, char **challenge_best_time) {
 	if ( sys == NULL || most_popular_challenge_p == NULL || \
 			challenge_best_time == NULL ) {
 		return NULL_PARAMETER;
@@ -147,9 +100,11 @@ Result destroy_system(ChallengeRoomSystem *sys, int destroy_time, char **most_po
 	return OK;
 }
 
-Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, char *visitor_name, int visitor_id, Level level, int start_time) {
+Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, \
+		char *visitor_name, int visitor_id, Level level, int start_time) {
 	if ( sys == NULL) return NULL_PARAMETER;
 	if ( sys->last_time > start_time) return ILLEGAL_TIME;
+
 	Visitor* visitor = malloc(sizeof(*visitor));
 	if ( visitor == NULL ) return MEMORY_PROBLEM;
 	VisitorNode* visitor_node = createVisitorNode(visitor);
@@ -160,6 +115,7 @@ Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, char *visitor_n
 		freeVisitorAndVisitorNode(visitor, visitor_node);
 		return ILLEGAL_PARAMETER;
 	}
+
 	ChallengeRoom* room = findRoomByName(sys, room_name);
 	int places = 0;
 	Result result = num_of_free_places_for_level(room, level, &places);
@@ -176,25 +132,20 @@ Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, char *visitor_n
 		freeVisitorAndVisitorNode(visitor, visitor_node);
 		return NO_AVAILABLE_CHALLENGES;
 	}
+
 	result = init_visitor(visitor, visitor_name, visitor_id);
 	if ( result != OK) {
 		freeVisitorAndVisitorNode(visitor, visitor_node);
 		return result;
 	}
-	VisitorNode* ptr_visitor = sys->visitor_head;
-	if ( ptr_visitor != NULL) {
-		while ( ptr_visitor->next ) {
-			ptr_visitor = ptr_visitor->next;
-		}
-		ptr_visitor->next = visitor_node;
-	} else {
-		sys->visitor_head = visitor_node;
-	}
+
 	result = visitor_enter_room(room, visitor, level, start_time);
 	if (result != OK ) {
 		freeVisitorAndVisitorNode(visitor, visitor_node);
 		return result;
 	}
+
+	addVisitorNode(sys, visitor_node);
 	sys->last_time = start_time;
 	return OK;
 }
@@ -238,7 +189,8 @@ Result all_visitors_quit(ChallengeRoomSystem *sys, int quit_time) {
 	return OK;
 }
 
-Result system_room_of_visitor(ChallengeRoomSystem *sys, char *visitor_name, char **room_name) {
+Result system_room_of_visitor(ChallengeRoomSystem *sys, \
+		char *visitor_name, char **room_name) {
 	if (sys == NULL ) return NULL_PARAMETER;
 	if (visitor_name == NULL || room_name == NULL) return ILLEGAL_PARAMETER;
 	VisitorNode* visitor_node = findVisitorNodebyName(sys, visitor_name);
@@ -248,7 +200,8 @@ Result system_room_of_visitor(ChallengeRoomSystem *sys, char *visitor_name, char
 	return OK;
 }
 
-Result change_challenge_name(ChallengeRoomSystem *sys, int challenge_id, char *new_name) {
+Result change_challenge_name(ChallengeRoomSystem *sys, \
+		int challenge_id, char *new_name) {
 	if ( sys == NULL || new_name == NULL ) return NULL_PARAMETER;
 	//Challenge *challenge = findChallengeById(sys, challenge_id);
 	Challenge* challenge = findChallenge(sys, &challenge_id, compareId);
@@ -260,7 +213,8 @@ Result change_challenge_name(ChallengeRoomSystem *sys, int challenge_id, char *n
 	return OK;
 }
 
-Result change_system_room_name(ChallengeRoomSystem *sys, char *current_name,  char *new_name) {
+Result change_system_room_name(ChallengeRoomSystem *sys, \
+		char *current_name,  char *new_name) {
 	if ( sys == NULL || current_name == NULL || new_name == NULL ) {
 		return NULL_PARAMETER;
 	}
@@ -269,7 +223,8 @@ Result change_system_room_name(ChallengeRoomSystem *sys, char *current_name,  ch
 	return change_room_name(room, new_name);
 }
 
-Result best_time_of_system_challenge(ChallengeRoomSystem *sys, char *challenge_name, int *time) {
+Result best_time_of_system_challenge(ChallengeRoomSystem *sys, \
+		char *challenge_name, int *time) {
 	if ( sys == NULL || challenge_name == NULL || time == NULL ) {
 		return NULL_PARAMETER;
 	}
@@ -300,7 +255,8 @@ Result most_popular_challenge(ChallengeRoomSystem *sys, char **challenge_name) {
 		if ( temp > max) {
 			max = temp;
 			strcpy(temp_name, (*sys).challenges[i].name);
-		} else if( temp == max && strcmp(temp_name,(*sys).challenges[i].name) > 0) {
+		} else if( temp == max && \
+				strcmp(temp_name,(*sys).challenges[i].name) > 0) {
 			strcpy(temp_name, (*sys).challenges[i].name);
 		}
 	}
@@ -317,7 +273,8 @@ Result most_popular_challenge(ChallengeRoomSystem *sys, char **challenge_name) {
 }
 
 
-static Result findBestTimeOfSystem(ChallengeRoomSystem *sys, char **challenge_name) {
+static Result findBestTimeOfSystem(ChallengeRoomSystem *sys, \
+		char **challenge_name) {
 	if ( sys == NULL || challenge_name == NULL ) return NULL_PARAMETER;
 	int number_of_challenges = (*sys).number_of_challenges;
 	int min = -1, temp;
@@ -350,7 +307,6 @@ static Result findBestTimeOfSystem(ChallengeRoomSystem *sys, char **challenge_na
 	}
 	return OK;
 }
-
 
 static ChallengeRoom* findRoomByName(ChallengeRoomSystem *sys, char* name) {
 	int number_of_challenge_rooms = (*sys).number_of_challenge_rooms;
@@ -397,29 +353,9 @@ static VisitorNode* findVisitorNodebyName(ChallengeRoomSystem *sys,char *name) {
 	}
 	return NULL;
 }
-/*
-static Challenge* findChallengeById(ChallengeRoomSystem *sys, int id) {
-	int number_of_challenges = (*sys).number_of_challenges;
-	for (int i = 0; i < number_of_challenges; i++) {
-		if ( (*sys).challenges[i].id == id) {
-			return &((*sys).challenges[i]);
-		}
-	}
-	return NULL;
-}
 
-static Challenge* findChallengeByName(ChallengeRoomSystem *sys, char *name) {
-	int number_of_challenges = (*sys).number_of_challenges;
-	for (int i = 0; i < number_of_challenges; i++) {
-		if ( strcmp((*sys).challenges[i].name, name) == 0) {
-			return &((*sys).challenges[i]);
-		}
-	}
-	return NULL;
-}*/
-
-
-static Challenge* findChallenge(ChallengeRoomSystem *sys, void* value, CompareFunctionDefinition compareFunction) {
+static Challenge* findChallenge(ChallengeRoomSystem *sys, void* value, \
+		CompareFunctionDefinition compareFunction) {
 	int number_of_challenges = (*sys).number_of_challenges;
 	for (int i = 0; i < number_of_challenges; i++) {
 		if ( compareFunction((*sys).challenges[i], value) == 0) {
@@ -429,20 +365,133 @@ static Challenge* findChallenge(ChallengeRoomSystem *sys, void* value, CompareFu
 	return NULL;
 }
 
-int compareId(Challenge challenge, void* id) {
+static int compareId(Challenge challenge, void* id) {
     if ( challenge.id == *(int*)id ) return 0;
     return 1;
 }
 
-int compareName(Challenge challenge, void* name) {
+static int compareName(Challenge challenge, void* name) {
     return strcmp(challenge.name, (char*)name);
 }
 
-int freeVisitorAndVisitorNode(Visitor* visitor, VisitorNode* visitor_node) {
+static int freeVisitorAndVisitorNode(Visitor* visitor, \
+		VisitorNode* visitor_node) {
 	free(visitor);
 	free(visitor_node);
 	return 0;
 }
 
+static Result addVisitorNode(ChallengeRoomSystem *sys, \
+		VisitorNode* visitor_node) {
+	VisitorNode* ptr_visitor = sys->visitor_head;
+	if ( ptr_visitor != NULL) {
+		while ( ptr_visitor->next ) {
+			ptr_visitor = ptr_visitor->next;
+		}
+		ptr_visitor->next = visitor_node;
+	} else {
+		sys->visitor_head = visitor_node;
+	}
+	return OK;
+}
 
+static Result initializeSystem(ChallengeRoomSystem *sys, FILE *file) {
+	char temp_name[MAX_NAME_LENG];
+	//readName(temp_name, file);
+	fscanf(file, "%s", temp_name);
+	sys->name = malloc(sizeof(char) * (strlen(temp_name) + 1));
+	if (sys->name == NULL) {
+		free(sys);
+		fclose(file);
+		return MEMORY_PROBLEM;
+	}
+	strcpy(sys->name, temp_name);
+	return OK;
+}
 
+static Result initializeChallenges(ChallengeRoomSystem *sys, FILE *file) {
+	//TODO separated function
+	// READ challenges
+	int temp_number = 0;
+	fscanf(file, "%d", &temp_number);
+	sys->number_of_challenges = temp_number;
+	sys->challenges = malloc(sizeof(Challenge) * temp_number);
+	if (sys->challenges == NULL) {
+		free(sys->name);
+		free(sys);
+		fclose(file);
+		return MEMORY_PROBLEM;
+	}
+	int id, level;
+	int offset_level = 1;
+	Result result = OK;
+	char temp_name[MAX_NAME_LENG];
+	for(int i = 0; i < sys->number_of_challenges; i++) {
+		if ( fscanf(file,"%s", temp_name) == 1 && \
+				fscanf(file, " %d %d\n", &id, &level)) {
+			//offset change 1-Easy 2-Medium 3-Hard to 0-2 values
+			result = init_challenge(&(sys->challenges[i]), id, \
+					temp_name, level - offset_level);
+			if( result == OK ) {
+				continue;
+			}
+		}
+		free(sys->challenges);
+		free(sys->name);
+		free(sys);
+		fclose(file);
+		return MEMORY_PROBLEM;
+	}
+	return OK;
+}
+
+static Result initializeRooms(ChallengeRoomSystem *sys, FILE *file) {
+	int temp_number = 0;
+	fscanf(file, "%d", &temp_number);
+	sys->number_of_challenge_rooms = temp_number;
+	sys->challenge_rooms = malloc(sizeof(ChallengeRoom) * temp_number);
+	if ( sys->challenge_rooms == NULL) {
+		for(int i = 0; i < sys->number_of_challenges; i++ ) {
+			reset_challenge(&(sys->challenges[i]));
+		}
+		free(sys->challenges);
+		free(sys->name);
+		free(sys);
+		fclose(file);
+		return MEMORY_PROBLEM;
+	}
+	int number_of_challenges;
+	char temp_name[MAX_NAME_LENG];
+	Result result = OK;
+	for (int i = 0; i < sys->number_of_challenge_rooms; i++) {
+		if ( fscanf(file,"%s", temp_name) == 1 && \
+				fscanf(file, " %d", &number_of_challenges)) {
+				result = init_room(&(sys->challenge_rooms[i]), \
+						temp_name, number_of_challenges);
+				if ( result != OK) {
+					return result;
+				}
+				initializeChallengeActivitys( sys, sys->challenge_rooms[i], \
+						file,  number_of_challenges);
+		}
+	}
+	return OK;
+}
+
+static Result initializeChallengeActivitys(ChallengeRoomSystem *sys, \
+		ChallengeRoom room, FILE *file, int number_of_challenges) {
+	int temp_number;
+	Result result = OK;
+	for(int j = 0; j < number_of_challenges; j++) {
+		fscanf(file, " %d", &temp_number);
+		Challenge* challenge = \
+				findChallenge(sys, &temp_number, compareId);
+		result = init_challenge_activity(\
+				&(room.challenges[j]), \
+				challenge);
+		if ( result != OK) {
+			return result;
+		}
+	}
+	return OK;
+}

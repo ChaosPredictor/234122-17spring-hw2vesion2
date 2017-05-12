@@ -7,7 +7,8 @@
 
 #include "visitor_room.h"
 
-Result init_challenge_activity(ChallengeActivity *activity, Challenge *challenge) {
+Result init_challenge_activity(ChallengeActivity *activity, \
+		Challenge *challenge) {
 	if ( activity == NULL || challenge == NULL) {
 		return NULL_PARAMETER;
 	}
@@ -94,7 +95,8 @@ Result reset_room(ChallengeRoom *room) {
 	return OK;
 }
 
-Result num_of_free_places_for_level(ChallengeRoom *room, Level level, int *places) {
+Result num_of_free_places_for_level(ChallengeRoom *room, \
+		Level level, int *places) {
 	if ( room == NULL || places == NULL) {
 		return NULL_PARAMETER;
 	}
@@ -137,7 +139,8 @@ Result room_of_visitor(Visitor *visitor, char **room_name) {
 	return OK;
 }
 
-Result visitor_enter_room(ChallengeRoom *room, Visitor *visitor, Level level, int start_time) {
+Result visitor_enter_room(ChallengeRoom *room, Visitor *visitor, \
+		Level level, int start_time) {
 	if ( room == NULL || visitor == NULL ) {
 		return NULL_PARAMETER;
 	}
@@ -157,13 +160,15 @@ Result visitor_enter_room(ChallengeRoom *room, Visitor *visitor, Level level, in
 						level == room->challenges[i].challenge->level) ) {
 			if (index_of_challenge == -1) {
 				index_of_challenge = i;
-			} else if(strcmp((room->challenges[index_of_challenge]).challenge->name,\
+			} else if( strcmp( \
+					(room->challenges[index_of_challenge]).challenge->name, \
 					(room->challenges[i]).challenge->name) > 0) {
 				index_of_challenge = i;
 			}
 		}
 	}
-	Result result = inc_num_visits(room->challenges[index_of_challenge].challenge);
+	Result result = \
+			inc_num_visits(room->challenges[index_of_challenge].challenge);
 	if ( result != OK ) {
 		return result;
 	}
@@ -192,5 +197,3 @@ Result visitor_quit_room(Visitor *visitor, int quit_time) {
 	visitor->current_challenge = NULL;
 	return OK;
 }
-
-
