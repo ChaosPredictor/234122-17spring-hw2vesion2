@@ -9,7 +9,7 @@ typedef struct SChallenge
    char *name;
    Level level;
    int best_time;
-   int num_visits_param;
+   int num_visits;
 } Challenge;
 //Done
 Result init_challenge(Challenge *challenge, int id, char *name, Level level);

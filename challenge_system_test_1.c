@@ -200,16 +200,16 @@ int utChallenge() {
 
 	r = inc_num_visits(NULL);
 	ASSERT("2.5a - inc_num_visits" , r==NULL_PARAMETER)
-	ASSERT("2.5bPre - inc_num_visits" , challenge->num_visits_param == 0)
+	ASSERT("2.5bPre - inc_num_visits" , challenge->num_visits == 0)
 	r = inc_num_visits(challenge);
-	ASSERT("2.5b - inc_num_visits" , r==OK && challenge->num_visits_param == 1)
+	ASSERT("2.5b - inc_num_visits" , r==OK && challenge->num_visits == 1)
 
 	int visits = -1;
 	r = num_visits(NULL, &visits);
 	ASSERT("2.6a - num_visits" , r==NULL_PARAMETER)
 	r = num_visits(challenge, NULL);
 	ASSERT("2.6b - num_visits" , r==NULL_PARAMETER)
-	challenge->num_visits_param = 0;
+	challenge->num_visits = 0;
 	ASSERT("2.6cPre - num_visits" , visits == -1)
 	r = num_visits(challenge, &visits);
 	ASSERT("2.6c - num_visits" , r==OK && visits == 0)
