@@ -2,6 +2,7 @@
 #define CHALLENGE_SYSTEM_H_
 
 #include "visitor_room.h"
+#include "system_additional_types.h"
 
 typedef struct SChallengeRoomSystem
 {

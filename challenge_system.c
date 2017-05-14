@@ -10,11 +10,6 @@
 
 #define MAX_NAME_LENG 51 //Max leng 50 + 1 of end of string
 
-typedef struct VisitorNodeStr {
-	Visitor *visitor;
-	struct VisitorNodeStr* next;
-} VisitorNode;
-
 typedef int (*CompareFunctionDefinition)(Challenge, void*) ;
 typedef int (*CompareFunctionDefinition2)(void*, void*) ;
 
