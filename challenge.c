@@ -7,7 +7,6 @@
 
 #include "challenge.h"
 
-/*initialize challenge with id, name and level save in a new copy of challenge*/
 Result init_challenge(Challenge *challenge, int id, char *name, Level level) {
 	if ( name == NULL || challenge == NULL) {
 		return NULL_PARAMETER;
@@ -24,7 +23,6 @@ Result init_challenge(Challenge *challenge, int id, char *name, Level level) {
 	return OK;
 }
 
-/*reset and free single copy of a challenge*/
 Result reset_challenge(Challenge *challenge) {
 	if ( challenge == NULL) {
 		return NULL_PARAMETER;
@@ -37,7 +35,6 @@ Result reset_challenge(Challenge *challenge) {
 	return OK;
 }
 
-/*change challenge name to new name*/
 Result change_name(Challenge *challenge, char *name) {
 	if ( name == NULL || challenge == NULL) {
 		return NULL_PARAMETER;
@@ -53,7 +50,6 @@ Result change_name(Challenge *challenge, char *name) {
 
 }
 
-/*set best challenge time*/
 Result set_best_time_of_challenge(Challenge *challenge, int time) {
 	if ( challenge == NULL) {
 		return NULL_PARAMETER;
@@ -67,7 +63,6 @@ Result set_best_time_of_challenge(Challenge *challenge, int time) {
 	return OK;
 }
 
-/*get best challenge time*/
 Result best_time_of_challenge(Challenge *challenge, int *time) {
 	//TODO - to ask what to do if int* NULL
 	if ( challenge == NULL || time == NULL) {
@@ -77,7 +72,6 @@ Result best_time_of_challenge(Challenge *challenge, int *time) {
 	return OK;
 }
 
-/*increase number of visits of the challenge by one*/
 Result inc_num_visits(Challenge *challenge) {
 	if ( challenge == NULL) {
 		return NULL_PARAMETER;
@@ -86,7 +80,6 @@ Result inc_num_visits(Challenge *challenge) {
 	return OK;
 }
 
-/*get number of visits of the challenge*/
 Result num_visits(Challenge *challenge, int *visits) {
 	if ( challenge == NULL || visits == NULL) {
 		return NULL_PARAMETER;

@@ -19,41 +19,52 @@ typedef enum {
 } COMPARE_TYPE;
 
 
-/*finding the challenge with the best time in the system*/
+/*finding the challenge with the best time in the system. return a new copy of
+ * the challenge name with the best time in the system*/
 static Result findBestTimeOfSystem(ChallengeRoomSystem *sys, \
 		char **challenge_name);
-/*finding room by name return pointer to the room*/
+
+/*finding room by name return pointer to the room. Return pointer to the room */
 static ChallengeRoom* findRoomByName(ChallengeRoomSystem *sys, char* name);
-/*create visitor node for visitor linked list return a pointer of visitor node*/
+
+/*create visitor node for visitor linked list. Return a pointer of new visitor
+ * node or NULL in case of failure*/
 static VisitorNode* createVisitorNode(Visitor* visitor);
-/*find visitor node by Name/Id return pointer to it*/
+
+/*find visitor node by Name/Id.
+ * Return pointer to it or NULL in case of failure*/
 static VisitorNode* findVisitorNode(ChallengeRoomSystem *sys, void* value, \
 		COMPARE_TYPE type);
-/*find challenge by Name/Id return pointer to it*/
+
+/*find challenge by Name / Id value should be char* / int depending on type
+return pointer to it or NULL in case of failure*/
 static Challenge* findChallenge(ChallengeRoomSystem *sys, void* value, \
 		COMPARE_TYPE type);
+
 /*compare 2 Ids if equal return 0 otherwise 1*/
-static int compareId(void* value1, void* value2);
+static int compareId(int value1, int value2);
+
 /*compare 2 Names if equal return 0 otherwise -1/1 */
-static int compareName(void* value1, void* value2);
-/*free visitor and visitor node return 0*/
-static int freeVisitorAndVisitorNode(Visitor* visitor, \
-		VisitorNode* visitor_node);
-/*add visitor node to system linked list*/
+static int compareName(char* value1, char* value2);
+
+/*add visitor node to system visitor node linked list */
 static Result addVisitorNode(ChallengeRoomSystem *sys, \
 		VisitorNode* visitor_node);
-/*part of create system initialize system name*/
+
+/*part of create system, initialize system name from file data*/
 static Result initializeSystem(ChallengeRoomSystem *sys, FILE *file);
-/*part of create system initialize system challenges*/
+
+/*part of create system, initialize system challenges from file data*/
 static Result initializeChallenges(ChallengeRoomSystem *sys, FILE *file);
-/*part of create system initialize system rooms*/
+
+/*part of create system, initialize system rooms from file data*/
 static Result initializeRooms(ChallengeRoomSystem *sys, FILE *file);
-/*part of create system initialize system rooms' activity*/
+
+/*part of create system, initialize system rooms' activity from file data*/
 static Result initializeChallengeActivitys(ChallengeRoomSystem *sys, \
 		ChallengeRoom room, FILE *file, int number_of_challenges);
 
 
-/*creating system from file, initialize all necessary fields*/
 Result create_system(char *init_file, ChallengeRoomSystem **sys) {
 	FILE *file = fopen(init_file, "r");
 	if (file == NULL) return NULL_PARAMETER;
@@ -93,7 +104,6 @@ Result create_system(char *init_file, ChallengeRoomSystem **sys) {
 	return OK;
 }
 
-/*destroy and free all necessary fields*/
 Result destroy_system(ChallengeRoomSystem *sys, int destroy_time, \
 		char **most_popular_challenge_p, char **challenge_best_time) {
 	if ( sys == NULL || most_popular_challenge_p == NULL || \
@@ -125,11 +135,27 @@ Result destroy_system(ChallengeRoomSystem *sys, int destroy_time, \
 	return OK;
 }
 
-/*visitor's request to enter to a certain room & level with start time*/
 Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, \
 		char *visitor_name, int visitor_id, Level level, int start_time) {
-	if ( sys == NULL) return NULL_PARAMETER;
-	if ( sys->last_time > start_time) return ILLEGAL_TIME;
+	if ( sys != NULL && sys->last_time > start_time) return ILLEGAL_TIME;
+
+	Result result;
+	ChallengeRoom* room;
+	if ( sys != NULL && room_name != NULL ) {
+		room = findRoomByName(sys, room_name);
+		int places = 0;
+		result = num_of_free_places_for_level(room, level, &places);
+		if ( result != OK ) return result;
+		if ( places == 0 ) return NO_AVAILABLE_CHALLENGES;
+	}
+
+	if (sys == NULL) return NULL_PARAMETER;
+
+	if ( room_name == NULL ) return ILLEGAL_PARAMETER;
+
+	if ( visitor_name == NULL ) return ILLEGAL_PARAMETER;
+
+	if ( findVisitorNode(sys, &visitor_id, ID) != NULL ) return ALREADY_IN_ROOM;
 
 	Visitor* visitor = malloc(sizeof(*visitor));
 	if ( visitor == NULL ) return MEMORY_PROBLEM;
@@ -137,37 +163,18 @@ Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, \
 	if ( visitor_node == NULL ) {
 		free(visitor);
 		return MEMORY_PROBLEM;
-	} else if ( room_name == NULL ) {
-		freeVisitorAndVisitorNode(visitor, visitor_node);
-		return ILLEGAL_PARAMETER;
 	}
-
-	ChallengeRoom* room = findRoomByName(sys, room_name);
-	int places = 0;
-	Result result = num_of_free_places_for_level(room, level, &places);
-	if ( result != OK ) {
-		freeVisitorAndVisitorNode(visitor, visitor_node);
-		return result;
-	} else if ( visitor_name == NULL ) {
-		freeVisitorAndVisitorNode(visitor, visitor_node);
-		return ILLEGAL_PARAMETER;
-	} else if ( findVisitorNode(sys, &visitor_id, ID) != NULL ) {
-		freeVisitorAndVisitorNode(visitor, visitor_node);
-		return ALREADY_IN_ROOM;
-	} else if ( places == 0 ) {
-		freeVisitorAndVisitorNode(visitor, visitor_node);
-		return NO_AVAILABLE_CHALLENGES;
-	}
-
 	result = init_visitor(visitor, visitor_name, visitor_id);
 	if ( result != OK) {
-		freeVisitorAndVisitorNode(visitor, visitor_node);
+		free(visitor);
+		free(visitor_node);
 		return result;
 	}
 
 	result = visitor_enter_room(room, visitor, level, start_time);
 	if (result != OK ) {
-		freeVisitorAndVisitorNode(visitor, visitor_node);
+		free(visitor);
+		free(visitor_node);
 		return result;
 	}
 
@@ -176,10 +183,11 @@ Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, \
 	return OK;
 }
 
-/*visitor leaving the room update all necessary fields*/
 Result visitor_quit(ChallengeRoomSystem *sys, int visitor_id, int quit_time) {
-	if ( sys == NULL) return NULL_PARAMETER;
-	if ( sys->last_time > quit_time) return ILLEGAL_TIME;
+
+	if ( sys != NULL && sys->last_time > quit_time) return ILLEGAL_TIME;
+
+	if ( sys == NULL ) return NULL_PARAMETER;
 	VisitorNode *visitor_node = findVisitorNode(sys, &visitor_id, ID);
 	if ( visitor_node == NULL ) return NOT_IN_ROOM;
 	Result result = visitor_quit_room(visitor_node->visitor, quit_time);
@@ -202,11 +210,13 @@ Result visitor_quit(ChallengeRoomSystem *sys, int visitor_id, int quit_time) {
 	return OK;
 }
 
-/*all system visitors leaving by quit time*/
 Result all_visitors_quit(ChallengeRoomSystem *sys, int quit_time) {
-	if ( sys == NULL) return NULL_PARAMETER;
-	if ( sys->last_time > quit_time) return ILLEGAL_TIME;
-	if ( sys->visitor_head == NULL) return NOT_IN_ROOM;
+
+	if ( sys != NULL && sys->last_time > quit_time) return ILLEGAL_TIME;
+
+	if ( sys == NULL ) return NULL_PARAMETER;
+
+	if ( sys->visitor_head == NULL) return OK;
 	VisitorNode* ptr_visitor = sys->visitor_head, *temp;
 	while ( ptr_visitor ) {
 		temp = ptr_visitor;
@@ -217,25 +227,27 @@ Result all_visitors_quit(ChallengeRoomSystem *sys, int quit_time) {
 	return OK;
 }
 
-/*find visitor room in the system*/
 Result system_room_of_visitor(ChallengeRoomSystem *sys, \
 		char *visitor_name, char **room_name) {
 	if (sys == NULL ) return NULL_PARAMETER;
-	if (visitor_name == NULL || room_name == NULL) return ILLEGAL_PARAMETER;
-	VisitorNode* visitor_node = findVisitorNode(sys, visitor_name, NAME);
 
+	if (visitor_name == NULL || room_name == NULL) return ILLEGAL_PARAMETER;
+
+	VisitorNode* visitor_node = findVisitorNode(sys, visitor_name, NAME);
 	if ( visitor_node == NULL ) return NOT_IN_ROOM;
+
 	Result result = room_of_visitor(visitor_node->visitor, room_name);
 	if ( result != OK ) return result;
 	return OK;
 }
 
-/*change challenge name to new name saving the name in the new copy*/
 Result change_challenge_name(ChallengeRoomSystem *sys, \
 		int challenge_id, char *new_name) {
 	if ( sys == NULL || new_name == NULL ) return NULL_PARAMETER;
+
 	Challenge* challenge = findChallenge(sys, &challenge_id, ID);
 	if ( challenge == NULL ) return ILLEGAL_PARAMETER;
+
 	challenge->name = realloc(challenge->name, sizeof(char) * \
 			(strlen(new_name) + 1));
 	if ( challenge->name == NULL) return MEMORY_PROBLEM;
@@ -243,18 +255,18 @@ Result change_challenge_name(ChallengeRoomSystem *sys, \
 	return OK;
 }
 
-/*change room name to new name saving the name in the new copy*/
 Result change_system_room_name(ChallengeRoomSystem *sys, \
 		char *current_name,  char *new_name) {
 	if ( sys == NULL || current_name == NULL || new_name == NULL ) {
 		return NULL_PARAMETER;
 	}
+
 	ChallengeRoom *room = findRoomByName(sys, current_name);
 	if ( room == NULL ) return ILLEGAL_PARAMETER;
+
 	return change_room_name(room, new_name);
 }
 
-/*get best time of challenge in the system, the shorter time*/
 Result best_time_of_system_challenge(ChallengeRoomSystem *sys, \
 		char *challenge_name, int *time) {
 	if ( sys == NULL || challenge_name == NULL || time == NULL ) {
@@ -270,7 +282,6 @@ Result best_time_of_system_challenge(ChallengeRoomSystem *sys, \
 	return OK;
 }
 
-/*get most popular challenge in the system the higher number of visits*/
 Result most_popular_challenge(ChallengeRoomSystem *sys, char **challenge_name) {
 	if ( sys == NULL || challenge_name == NULL ) {
 		return NULL_PARAMETER;
@@ -368,7 +379,7 @@ static VisitorNode* findVisitorNode(ChallengeRoomSystem *sys, void* value, \
 		return NULL;
 	while ( ptr_Visitor != NULL) {
 		if ( type == ID && \
-				compareId(&(ptr_Visitor->visitor->visitor_id), value) == 0) {
+				compareId(ptr_Visitor->visitor->visitor_id, *(int*)value) == 0){
 				return ptr_Visitor;
 		} else if ( type == NAME && \
 				compareName(ptr_Visitor->visitor->visitor_name, value) == 0) {
@@ -384,7 +395,7 @@ static Challenge* findChallenge(ChallengeRoomSystem *sys, void* value, \
 	int number_of_challenges = (*sys).number_of_challenges;
 	for (int i = 0; i < number_of_challenges; i++) {
 		if ( type == ID && \
-				compareId(&((*sys).challenges[i].id), value) == 0) {
+				compareId((*sys).challenges[i].id, *(int*)value) == 0) {
 				return &((*sys).challenges[i]);
 		} else if ( type == NAME && \
 				compareName((*sys).challenges[i].name, value) == 0){
@@ -394,20 +405,13 @@ static Challenge* findChallenge(ChallengeRoomSystem *sys, void* value, \
 	return NULL;
 }
 
-static int compareId(void* value1, void* value2) {
-    if ( *(int*)value1 == *(int*)value2 ) return 0;
+static int compareId(int value1, int value2) {
+    if ( value1 == value2 ) return 0;
     return 1;
 }
 
-static int compareName(void* value1, void* value2) {
-    return strcmp((char*)value1, (char*)value2);
-}
-
-static int freeVisitorAndVisitorNode(Visitor* visitor, \
-		VisitorNode* visitor_node) {
-	free(visitor);
-	free(visitor_node);
-	return 0;
+static int compareName(char* value1, char* value2) {
+    return strcmp(value1, value2);
 }
 
 static Result addVisitorNode(ChallengeRoomSystem *sys, \

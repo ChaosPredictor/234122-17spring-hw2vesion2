@@ -7,7 +7,6 @@
 
 #include "visitor_room.h"
 
-/*initialize challenge activity with challenge*/
 Result init_challenge_activity(ChallengeActivity *activity, \
 		Challenge *challenge) {
 	if ( activity == NULL || challenge == NULL) {
@@ -19,7 +18,6 @@ Result init_challenge_activity(ChallengeActivity *activity, \
 	return OK;
 }
 
-/*reset challenge activity change challenge to NULL*/
 Result reset_challenge_activity(ChallengeActivity *activity) {
 	if ( activity == NULL) {
 		return NULL_PARAMETER;
@@ -28,7 +26,6 @@ Result reset_challenge_activity(ChallengeActivity *activity) {
 	return OK;
 }
 
-/*initialize visitor with id and name save in a new copy of visitor*/
 Result init_visitor(Visitor *visitor, char *name, int id) {
 	if ( visitor == NULL || name == NULL ) {
 		return NULL_PARAMETER;
@@ -46,7 +43,6 @@ Result init_visitor(Visitor *visitor, char *name, int id) {
 	return OK;
 }
 
-/*reset and free visitor change visitor_name to NULL*/
 Result reset_visitor(Visitor *visitor) {
 	if ( visitor == NULL ) {
 		return NULL_PARAMETER;
@@ -61,7 +57,6 @@ Result reset_visitor(Visitor *visitor) {
 	return OK;
 }
 
-/*initialize room with name and number of challenges save name in a new copy*/
 Result init_room(ChallengeRoom *room, char *name, int num_challenges) {
 	if ( name == NULL || room == NULL) {
 		return NULL_PARAMETER;
@@ -88,7 +83,6 @@ Result init_room(ChallengeRoom *room, char *name, int num_challenges) {
 	return OK;
 }
 
-/*reset and free room change name to NULL*/
 Result reset_room(ChallengeRoom *room) {
 	if ( room == NULL) {
 		return NULL_PARAMETER;
@@ -101,7 +95,6 @@ Result reset_room(ChallengeRoom *room) {
 	return OK;
 }
 
-/*find a number of free place in the room in given level*/
 Result num_of_free_places_for_level(ChallengeRoom *room, \
 		Level level, int *places) {
 	if ( room == NULL || places == NULL) {
@@ -119,7 +112,6 @@ Result num_of_free_places_for_level(ChallengeRoom *room, \
 	return OK;
 }
 
-/*change room name to new name*/
 Result change_room_name(ChallengeRoom *room, char *new_name) {
 	if ( room == NULL || new_name == NULL ) {
 		return NULL_PARAMETER;
@@ -132,7 +124,6 @@ Result change_room_name(ChallengeRoom *room, char *new_name) {
 	return OK;
 }
 
-/*finding room of visitor*/
 Result room_of_visitor(Visitor *visitor, char **room_name) {
 	if ( visitor == NULL || room_name == NULL )	{
 		return NULL_PARAMETER;
@@ -148,7 +139,6 @@ Result room_of_visitor(Visitor *visitor, char **room_name) {
 	return OK;
 }
 
-/*handle visitor's request to enter to the room in a given level*/
 Result visitor_enter_room(ChallengeRoom *room, Visitor *visitor, \
 		Level level, int start_time) {
 	if ( room == NULL || visitor == NULL ) {
@@ -189,7 +179,6 @@ Result visitor_enter_room(ChallengeRoom *room, Visitor *visitor, \
 	return OK;
 }
 
-/*visitor leaving the room update all necessary fields*/
 Result visitor_quit_room(Visitor *visitor, int quit_time) {
 	if ( visitor == NULL ) {
 		return NULL_PARAMETER;

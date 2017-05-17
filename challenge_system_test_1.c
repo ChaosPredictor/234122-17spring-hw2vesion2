@@ -426,7 +426,7 @@ int utVisitorRoom() {
 	ASSERT("3.8dPre - room_of_visitor" , name == NULL)
 	r = room_of_visitor(visitor, &name);
 	ASSERT("3.8d - room_of_visitor" , r==OK && \
-			strcmp(name,new_name) == 0 && \
+			strcmp(name,room->name) == 0 && \
 			&name != visitor->room_name)
 	free(name);
 
@@ -565,7 +565,6 @@ int utChallengeSystem_public() {
 	ASSERT("4.2c - visitor_arrive", r==NO_AVAILABLE_CHALLENGES)
 	r = visitor_arrive(sys, NULL, visitor1_name, visitor1_id, level1, start_time);
 	ASSERT("4.2d - visitor_arrive", r==ILLEGAL_PARAMETER)
-
 	r = visitor_arrive(sys, room_name, NULL, visitor1_id, level1, start_time);
 	ASSERT("4.2e - visitor_arrive", r==ILLEGAL_PARAMETER)
 	char *tempName = NULL;
@@ -578,11 +577,11 @@ int utChallengeSystem_public() {
 			strcmp(tempName, room_name) == 0)
 	free(tempName);
 	r = visitor_arrive(sys, room_name, visitor1_name, visitor1_id, Medium, start_time);
-	ASSERT("4.2g - visitor_arrive", r==ALREADY_IN_ROOM)
+	ASSERT("4.2g - visitor_arrive", r==NO_AVAILABLE_CHALLENGES)
 	r = visitor_arrive(NULL, NULL, NULL, visitor2_id, level1, start_time);
 	ASSERT("4.2h - visitor_arrive", r==NULL_PARAMETER)
 	r = visitor_arrive(sys, room_name, NULL, visitor2_id, Medium, start_time);
-	ASSERT("4.2i - visitor_arrive", r==ILLEGAL_PARAMETER)
+	ASSERT("4.2i - visitor_arrive", r==NO_AVAILABLE_CHALLENGES)
 	r = visitor_arrive(sys, NULL, visitor2_name, visitor2_id, level1, start_time);
 	ASSERT("4.2j - visitor_arrive", r==ILLEGAL_PARAMETER)
 
@@ -616,7 +615,7 @@ int utChallengeSystem_public() {
 	r = all_visitors_quit(sys, quit_time);
 	ASSERT("4.4c - all_visitors_quit", r==OK)
 	r = all_visitors_quit(sys, quit_time);
-	ASSERT("4.4d - all_visitors_quit", r==NOT_IN_ROOM)
+	ASSERT("4.4d - all_visitors_quit", r==OK)
 
 
 	r = system_room_of_visitor(NULL, visitor1_name, &tempName);
