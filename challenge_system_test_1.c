@@ -317,7 +317,7 @@ int utVisitorRoom() {
 	char text[] = "3.4e xx - init_room";
 	for(int i = 0; i < number_of_challenges; i++){
 		sprintf(text,"3.4e %d - init_room", i);
-		ASSERT(text, room->challenges[i].start_time == -1 && \
+		ASSERT(text, room->challenges[i].start_time == 0 && \
 				room->challenges[i].visitor == NULL && \
 				room->challenges[i].challenge == NULL);
 	}
@@ -577,11 +577,11 @@ int utChallengeSystem_public() {
 			strcmp(tempName, room_name) == 0)
 	free(tempName);
 	r = visitor_arrive(sys, room_name, visitor1_name, visitor1_id, Medium, start_time);
-	ASSERT("4.2g - visitor_arrive", r==NO_AVAILABLE_CHALLENGES)
+	ASSERT("4.2g - visitor_arrive", r==ALREADY_IN_ROOM)
 	r = visitor_arrive(NULL, NULL, NULL, visitor2_id, level1, start_time);
 	ASSERT("4.2h - visitor_arrive", r==NULL_PARAMETER)
 	r = visitor_arrive(sys, room_name, NULL, visitor2_id, Medium, start_time);
-	ASSERT("4.2i - visitor_arrive", r==NO_AVAILABLE_CHALLENGES)
+	ASSERT("4.2i - visitor_arrive", r==ILLEGAL_PARAMETER)
 	r = visitor_arrive(sys, NULL, visitor2_name, visitor2_id, level1, start_time);
 	ASSERT("4.2j - visitor_arrive", r==ILLEGAL_PARAMETER)
 

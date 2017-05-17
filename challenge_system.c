@@ -64,6 +64,8 @@ static Result initializeRooms(ChallengeRoomSystem *sys, FILE *file);
 static Result initializeChallengeActivitys(ChallengeRoomSystem *sys, \
 		ChallengeRoom room, FILE *file, int number_of_challenges);
 
+static Result freeVisitorAndVisitorNode(Visitor *visitor, \
+		VisitorNode *visitorNode);
 
 Result create_system(char *init_file, ChallengeRoomSystem **sys) {
 	FILE *file = fopen(init_file, "r");
@@ -138,25 +140,9 @@ Result destroy_system(ChallengeRoomSystem *sys, int destroy_time, \
 Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, \
 		char *visitor_name, int visitor_id, Level level, int start_time) {
 	if ( sys != NULL && sys->last_time > start_time) return ILLEGAL_TIME;
-
-	Result result;
-	ChallengeRoom* room;
-	if ( sys != NULL && room_name != NULL ) {
-		room = findRoomByName(sys, room_name);
-		int places = 0;
-		result = num_of_free_places_for_level(room, level, &places);
-		if ( result != OK ) return result;
-		if ( places == 0 ) return NO_AVAILABLE_CHALLENGES;
+	if (sys == NULL) {
+		return NULL_PARAMETER;
 	}
-
-	if (sys == NULL) return NULL_PARAMETER;
-
-	if ( room_name == NULL ) return ILLEGAL_PARAMETER;
-
-	if ( visitor_name == NULL ) return ILLEGAL_PARAMETER;
-
-	if ( findVisitorNode(sys, &visitor_id, ID) != NULL ) return ALREADY_IN_ROOM;
-
 	Visitor* visitor = malloc(sizeof(*visitor));
 	if ( visitor == NULL ) return MEMORY_PROBLEM;
 	VisitorNode* visitor_node = createVisitorNode(visitor);
@@ -164,20 +150,39 @@ Result visitor_arrive(ChallengeRoomSystem *sys, char *room_name, \
 		free(visitor);
 		return MEMORY_PROBLEM;
 	}
+	if ( room_name == NULL || visitor_name == NULL) {
+		freeVisitorAndVisitorNode(visitor, visitor_node);
+		return ILLEGAL_PARAMETER;
+	}
+	if ( findVisitorNode(sys, &visitor_id, ID) != NULL ) {
+		freeVisitorAndVisitorNode(visitor, visitor_node);
+		return ALREADY_IN_ROOM;
+	}
+	Result result;
+	ChallengeRoom* room;
+	if ( sys != NULL && room_name != NULL ) {
+		room = findRoomByName(sys, room_name);
+		int places = 0;
+		result = num_of_free_places_for_level(room, level, &places);
+		if ( result != OK ) {
+			freeVisitorAndVisitorNode(visitor, visitor_node);
+			return result;
+		}
+		if ( places == 0 ) {
+			freeVisitorAndVisitorNode(visitor, visitor_node);
+			return NO_AVAILABLE_CHALLENGES;
+		}
+	}
 	result = init_visitor(visitor, visitor_name, visitor_id);
 	if ( result != OK) {
-		free(visitor);
-		free(visitor_node);
+		freeVisitorAndVisitorNode(visitor, visitor_node);
 		return result;
 	}
-
 	result = visitor_enter_room(room, visitor, level, start_time);
 	if (result != OK ) {
-		free(visitor);
-		free(visitor_node);
+		freeVisitorAndVisitorNode(visitor, visitor_node);
 		return result;
 	}
-
 	addVisitorNode(sys, visitor_node);
 	sys->last_time = start_time;
 	return OK;
@@ -531,5 +536,12 @@ static Result initializeChallengeActivitys(ChallengeRoomSystem *sys, \
 			return result;
 		}
 	}
+	return OK;
+}
+
+static Result freeVisitorAndVisitorNode(Visitor* visitor, \
+		VisitorNode* visitor_node) {
+	free(visitor);
+	free(visitor_node);
 	return OK;
 }
